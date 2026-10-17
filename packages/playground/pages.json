@@ -1,0 +1,20 @@
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "unix-pinia PoC"
+      }
+    },
+    {
+      "path": "pages/second/second",
+      "style": {
+        "navigationBarTitleText": "P2 跨页面验证"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarBackgroundColor": "#FFFFFF"
+  }
+}

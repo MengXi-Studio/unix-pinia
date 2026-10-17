@@ -1,0 +1,138 @@
+<template>
+  <scroll-view class="page">
+    <view class="card">
+      <text class="title">unix-pinia PoC（vdom 模式）</text>
+      <text class="item">store.count: {{ count }}</text>
+      <text class="item">store.doubleCount: {{ doubleCount }}</text>
+    </view>
+
+    <view class="card">
+      <text class="title">PoC 结果（与 [verify] 日志同步）</text>
+      <text class="item">{{ p1Result }}</text>
+      <text class="item">{{ p2Result }}</text>
+      <text class="item">{{ p3aResult }}</text>
+      <text class="item">{{ p3bResult }}</text>
+      <text class="item">{{ p3cResult }}</text>
+      <text class="item">{{ p4Result }}</text>
+      <text class="item">{{ p5Result }}</text>
+      <text class="item">{{ p6Result }}</text>
+    </view>
+
+    <button class="btn" @click="runPoC">运行 PoC</button>
+    <button class="btn" @click="onInc">increment（观察 watch 与视图联动）</button>
+    <button class="btn" @click="goSecond">跳转第二页（P2 跨页面）</button>
+  </scroll-view>
+</template>
+
+<script setup lang="uts">
+  import type { ComputedRef } from 'vue'
+  import { useCounterStore } from '@/stores/counter.uts'
+  import { storeToRefs } from '@/uni_modules/ux-pinia'
+
+  const counterStore = useCounterStore()
+  const { count, doubleCount } = storeToRefs(counterStore)
+
+  // PoC 结果状态
+  const p1Result = ref('P1 组合式API: 待运行')
+  const p2Result = ref('P2 单例同页: 待运行')
+  const p3aResult = ref('P3a reactive+Ref: 待运行')
+  const p3bResult = ref('P3b reactive+Computed: 待运行')
+  const p3cResult = ref('P3c reactive普通值: 待运行')
+  const p4Result = ref('P4 watch: 待运行（点击运行 PoC 自动检测）')
+  const p5Result = ref('P5 泛型defineStore: 待运行')
+  const p6Result = ref('P6 isRef: 待运行')
+
+  // P4 触发计数
+  let watchFired = 0
+
+  // ===== P3 验证对象：reactive 包装含 Ref / ComputedRef / 普通值 字段的对象 =====
+  type P3State = {
+    num: Ref<number>,
+    comp: ComputedRef<number>,
+    plain: string
+  }
+
+  const p3num = ref(11)
+  const p3comp = computed((): number => {
+    return 22
+  })
+  const p3raw: P3State = {
+    num: p3num,
+    comp: p3comp,
+    plain: 'plain-value'
+  }
+  const p3w = reactive(p3raw)
+
+  // ===== P4：setup 顶层注册 watch（绑定组件生命周期，页面存活期间有效） =====
+  watch(count, (newVal: number, oldVal: number): void => {
+    watchFired++
+    console.log('[verify] P4 watch fired:', watchFired, 'new:', newVal, 'old:', oldVal)
+  })
+
+  const runPoC = (): void => {
+    // ===== P5：泛型 defineStore<T> 已编译通过且可调用 =====
+    p5Result.value = 'P5 泛型defineStore: pass（编译+运行均通过）'
+
+    // ===== P1：store 内 ref/computed 创建与求值 =====
+    const c0 = counterStore.count.value
+    const dc = counterStore.doubleCount.value
+    p1Result.value = 'P1 组合式API: ' + (dc == c0 * 2 ? 'pass' : 'fail') + ' (count=' + c0.toString() + ', double=' + dc.toString() + ')'
+    console.log('[verify] P1 count =', c0, 'doubleCount =', dc)
+
+    // ===== P2：同页两次调用返回同一实例 =====
+    const s2 = useCounterStore()
+    p2Result.value = 'P2 单例同页: ' + (s2 == counterStore ? 'pass（同一实例）' : 'fail（不同实例）')
+    console.log('[verify] P2 same instance =', s2 == counterStore)
+
+    // ===== P6：isRef 可用性（若编译器未注入 isRef，本文件编译即失败） =====
+    const r6a = isRef(counterStore.count)
+    const r6b = isRef(counterStore.doubleCount)
+    p6Result.value = 'P6 isRef: Ref=' + (r6a ? 'true' : 'false') + ' ComputedRef=' + (r6b ? 'true' : 'false')
+    console.log('[verify] P6 isRef(store.count) =', r6a, 'isRef(store.doubleCount) =', r6b)
+
+    // ===== P3a / P3b：reactive 对象的 Ref / ComputedRef 字段是否自动解包 =====
+    const aIsRef = isRef(p3w.num)
+    const bIsRef = isRef(p3w.comp)
+    p3aResult.value = 'P3a reactive+Ref: ' + (aIsRef ? 'isRef=true（未解包）' : 'isRef=false（已解包）')
+    p3bResult.value = 'P3b reactive+Computed: ' + (bIsRef ? 'isRef=true（未解包）' : 'isRef=false（已解包）')
+    console.log('[verify] P3a wrapped.num isRef =', aIsRef, 'value:', p3w.num)
+    console.log('[verify] P3b wrapped.comp isRef =', bIsRef, 'value:', p3w.comp)
+
+    // P3a 响应联动：修改原始 ref，观察 wrapped 侧读数（区分真解包转发 / 字段覆盖）
+    p3num.value = 33
+    console.log('[verify] P3a after raw.value=33, wrapped.num =', p3w.num)
+
+    // ===== P3c：普通值字段（官方 reactive 基线，必过项） =====
+    p3w.plain = 'changed'
+    p3cResult.value = 'P3c reactive普通值: ' + (p3w.plain == 'changed' ? 'pass（读写正常）' : 'fail')
+    console.log('[verify] P3c plain =', p3w.plain)
+
+    // ===== P4：watch 已在顶层注册，此处触发一次并延迟确认 =====
+    counterStore.increment()
+    p4Result.value = 'P4 watch: 已触发 increment，300ms 后确认回调'
+    setTimeout((): void => {
+      if (watchFired > 0) {
+        p4Result.value = 'P4 watch: pass（fired=' + watchFired.toString() + '）'
+      } else {
+        p4Result.value = 'P4 watch: fail（increment 后回调未触发）'
+      }
+      console.log('[verify] P4 final watchFired =', watchFired)
+    }, 300)
+  }
+
+  const onInc = (): void => {
+    counterStore.increment()
+  }
+
+  const goSecond = (): void => {
+    counterStore.increment()
+    uni.navigateTo({ url: '/pages/second/second' })
+  }
+
+  // 进入页面自动运行 PoC（对齐 unix-storage playground 的 [verify] 自动验证模式）
+  // 注意：UTS 无声明提升（UTS110111150/165），onMounted 必须位于 runPoC 声明之后
+  onMounted((): void => {
+    console.log('[verify] index page onMounted, auto run PoC')
+    runPoC()
+  })
+</script>

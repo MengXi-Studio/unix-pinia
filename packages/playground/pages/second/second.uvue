@@ -1,0 +1,27 @@
+<template>
+  <scroll-view class="page">
+    <view class="card">
+      <text class="title">P2 跨页面单例验证</text>
+      <text class="item">second 页实时读取 count: {{ count }}</text>
+      <text class="item">second 页实时读取 doubleCount: {{ doubleCount }}</text>
+      <text class="item">（若与首页状态联动，则单例注册表跨页面共享成立）</text>
+    </view>
+    <button class="btn" @click="onBack">返回首页</button>
+  </scroll-view>
+</template>
+
+<script setup lang="uts">
+  import { useCounterStore } from '@/stores/counter.uts'
+  import { storeToRefs } from '@/uni_modules/ux-pinia'
+
+  const secondStore = useCounterStore()
+  const { count, doubleCount } = storeToRefs(secondStore)
+
+  onMounted((): void => {
+    console.log('[verify] P2 second page count =', secondStore.count.value, 'doubleCount =', secondStore.doubleCount.value)
+  })
+
+  const onBack = (): void => {
+    uni.navigateBack()
+  }
+</script>

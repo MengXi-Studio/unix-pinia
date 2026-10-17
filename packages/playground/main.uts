@@ -1,0 +1,10 @@
+import { createSSRApp } from 'vue'
+import App from './App.uvue'
+
+// PoC 验证点：unix-pinia 采用模块级单例注册表，无需 app.use() 挂载
+export function createApp() {
+  const app = createSSRApp(App)
+  return {
+    app
+  }
+}

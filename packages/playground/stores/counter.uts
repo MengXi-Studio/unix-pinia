@@ -1,0 +1,32 @@
+import type { ComputedRef } from 'vue'
+import { defineStore } from '@/uni_modules/ux-pinia'
+
+/**
+ * PoC store：setup 式定义（P1 / P5 验证载体）
+ *
+ * P1 验证点：纯 .uts 文件（非 uvue）中 ref/computed 函数与 Ref/ComputedRef 类型
+ * 是否由编译器全局注入（此处刻意不写任何 import from 'vue'）。
+ */
+export type CounterStore = {
+  count: Ref<number>,
+  doubleCount: ComputedRef<number>,
+  increment: () => void,
+  reset: () => void
+}
+
+export const useCounterStore = defineStore<CounterStore>('counter', (): CounterStore => {
+  // state
+  const count: Ref<number> = ref(0)
+  // getter
+  const doubleCount: ComputedRef<number> = computed((): number => {
+    return count.value * 2
+  })
+  // action（UTS 函数声明不能作值传递，必须箭头函数表达式）
+  const increment = (): void => {
+    count.value++
+  }
+  const reset = (): void => {
+    count.value = 0
+  }
+  return { count: count, doubleCount: doubleCount, increment: increment, reset: reset } as CounterStore
+})

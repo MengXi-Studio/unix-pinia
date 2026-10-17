@@ -1,0 +1,26 @@
+{
+	"name": "unix-pinia",
+	"type": "module",
+	"version": "0.1.0",
+	"private": true,
+	"description": "为 uni-app x 提供 Pinia 风格的状态管理库（UTS 编写，setup 式）",
+	"packageManager": "pnpm@10.31.0",
+	"workspaces": [
+		"packages/*"
+	],
+	"scripts": {
+		"sync:uni-modules": "node scripts/sync-uni-modules.mjs",
+		"sync:uni-modules:check": "node scripts/sync-uni-modules.mjs --check"
+	},
+	"author": {
+		"name": "PedroQue99",
+		"email": "ksmengfang@163.com"
+	},
+	"license": "MIT",
+	"homepage": "https://github.com/MengXi-Studio/unix-pinia#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/MengXi-Studio/unix-pinia.git"
+	},
+	"bugs": "https://github.com/MengXi-Studio/unix-pinia/issues"
+}
