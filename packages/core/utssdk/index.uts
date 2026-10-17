@@ -1,53 +1,16 @@
 /**
- * unix-pinia PoC 最小实现（仅用于 M1 技术验证，非正式 API）
+ * unix-pinia 入口：统一导出公开 API
  *
- * 验证目标：
- * - P2: 模块级 Map 注册表 → 应用级单例，跨页面共享
- * - P5: 泛型函数 defineStore<T> + 返回 useStore 闭包
- * - P6: storeToRefs 透传（方案 B 形态）
+ * 创建与实例：createPinia / Pinia / setActivePinia / getActivePinia
+ * 定义与使用：defineStore / storeToRefs
+ * 实例 API（$-methods 顶层映射）：patch / dispose / getStoreId
+ *
+ * subscribe 已裁掉（P9 裁决：Android 端 deep watch 对 RefImpl 字段不触发，
+ * 双端行为不一致；替代模式：字段级 watch(store.count, cb)，差异表已标注）
  */
-
-// 模块级注册表：UTS 顶层变量编译为 Kotlin 静态成员 / JS 模块级变量，随应用进程存活（P2 核心假设）
-const storeMap: Map<string, any> = new Map<string, any>()
-const definedIds: Set<string> = new Set<string>()
-
-/**
- * 定义一个 store（setup 式）
- *
- * UTS 无 Symbol（UTS110111154），store id 使用 string；
- * setup 返回对象约定：state 用 Ref、getter 用 ComputedRef、action 用箭头函数
- * （UTS 中 function 声明不能作值传递 UTS110111152）。
- *
- * @param id 全局唯一 store 标识
- * @param setup 工厂函数，返回用户显式标注的 store 类型 T
- * @returns useStore 函数，重复调用返回同一实例
- */
-export function defineStore<T>(id: string, setup: () => T): () => T {
-  // 与标准 Pinia 对齐：同 id 重复定义时给出警告（幂等由注册表保证）
-  if (definedIds.has(id)) {
-    console.warn("[unix-pinia] store id '" + id + "' 已定义，本次定义将被忽略（返回既有实例）")
-  }
-  definedIds.add(id)
-
-  const useStore = (): T => {
-    const cached: any | null = storeMap.get(id)
-    if (cached != null) {
-      return cached as T
-    }
-    const instance: T = setup()
-    storeMap.set(id, instance)
-    console.log("[unix-pinia] store '" + id + "' 已创建")
-    return instance
-  }
-  return useStore
-}
-
-/**
- * 将 store 转为 ref 集合（供 uvue 模板解构后自动解包绑定）
- *
- * PoC 采用方案 B：setup 返回对象本身就是 ref 集合，直接透传；
- * 方案 A（reactive 解包）若 PoC 通过，此处将返回 reactive 包装对象。
- */
-export function storeToRefs<T>(store: T): T {
-  return store
-}
+export { createPinia, Pinia, setActivePinia, getActivePinia } from './pinia.uts'
+export type { PiniaPlugin, PiniaPluginContext } from './pinia.uts'
+export { defineStore } from './defineStore.uts'
+export { storeToRefs } from './storeToRefs.uts'
+export { patch, dispose, getStoreId } from './instanceApi.uts'
+export type { Unsubscribe, SubscribeCallback } from './interface.uts'

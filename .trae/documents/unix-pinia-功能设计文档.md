@@ -216,7 +216,7 @@ useStore 返回的对象如何暴露 state，存在两个候选方案：
 
 **决策规则**：M1 阶段以 PoC-P3（见 8.1）验证方案 A 的可行性；可行则采用 A（迁移体验最优），不可用则采用 B。两方案的 `defineStore` 用户侧代码完全一致，仅类型语义和访问方式有差异，不影响 API 形状。若你有明确倾向，请直接在 Q3 作答。
 
-> **PoC 结论（2026-10-17，详见 [PoC验证报告](./unix-pinia-PoC验证报告.md)）**：Web 端 vdom 模式下方案 A **验证通过**——`reactive()` 对 `Ref`/`ComputedRef` 字段均自动解包且响应转发正确（`isRef=false`、改原始 ref 后 wrapped 读数联动）。**Android Kotlin 端复验通过后方案 A 最终定稿**。
+> **PoC 定稿（2026-10-17，详见 [PoC验证报告](./unix-pinia-PoC验证报告.md)）**：**方案 B（Ref 直读）最终定稿**。实证结论：`reactive()` 对 Ref/ComputedRef 字段的解包行为**双端不一致**——Web 端（JS Proxy）自动解包且真转发；Android 端（Kotlin 无 Proxy）**不解包**，字段保持 `io.dcloud.uniapp.vue.RefImpl`/`ComputedRef` 对象原样（isRef=true）。方案 A 将导致同一份代码两端 DX 不一致，违背 G1（一套 API 多端覆盖），故出局。方案 B（setup 对象直接透传 + 脚本 `.value` + 模板经 storeToRefs 解构自动解包）已双端验证全 pass，行为完全一致。
 
 ### 5.3 storeToRefs
 
@@ -254,7 +254,7 @@ export const useCartStore = defineStore<CartStore>('cart', (): CartStore => {
 | 安装 | `npm i pinia` + `app.use(createPinia())` | 引入 uts 插件，无需 app 挂载（模块单例） |
 | defineStore | id 可推断、类型自动推断 | id 必填 `string`；**返回类型必须显式 `type` 标注** |
 | setup 式 store | state=ref / getter=computed / action=函数 | 相同（action 必须箭头函数） |
-| store 访问 state | `store.count` | 方案 A 相同；方案 B `store.count.value`（Q3） |
+| store 访问 state | `store.count` | `store.count.value`（方案 B 定稿，脚本侧）；模板经 storeToRefs 解构后自动解包 |
 | storeToRefs | 支持 | 支持 |
 | $patch | 对象 + mutator 双形态 | 仅 mutator 形态 |
 | $subscribe | 整体订阅 | v1 用字段级 `watch` 替代 |
@@ -292,6 +292,7 @@ export class StoreRegistry {
 ### 6.2 响应式实现策略
 
 - **不自研响应式系统**，直接复用 uni-app x 内建 `ref` / `computed` / `reactive` / `watch`（官方状态管理文档已示范全局 reactive 单例跨端可用）。
+- **PoC 实证**：Android 端 `reactive()` 不解包 Ref/ComputedRef 字段（原生端 UTS 无 Proxy，返回 `RefImpl` 强类型对象）；因此 setup 返回对象**直接透传**，不做 reactive 包装（Web 端的解包优势放弃，换取双端行为一致）。
 - store 内部的 watch（如未来 $subscribe）均挂在全局上下文，不随组件卸载销毁（应用级语义）。
 
 ### 6.3 工程结构（沿用仓库既有 CI 约定）

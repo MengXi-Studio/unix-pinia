@@ -1,0 +1,17 @@
+{
+	"name": "@meng-xi/unix-pinia-docs",
+	"version": "0.1.0",
+	"private": true,
+	"description": "@meng-xi/unix-pinia 使用文档",
+	"type": "module",
+	"scripts": {
+		"dev": "vitepress dev",
+		"build": "vitepress build",
+		"preview": "vitepress preview"
+	},
+	"devDependencies": {
+		"@types/node": "^20.0.0",
+		"vitepress": "^1.6.3",
+		"vue": "^3.5.0"
+	}
+}

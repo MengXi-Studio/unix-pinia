@@ -1,0 +1,21 @@
+import type { Ref } from 'vue'
+import { defineStore } from '@/uni_modules/ux-pinia'
+import { useCounterStore } from './counter.uts'
+
+/**
+ * user store：验证跨 store 依赖（T5 用例）
+ * 在 setup 内直接调用对方 useStore（注册表保证单例）
+ */
+export type UserStore = {
+  score: Ref<number>,
+  addScoreFromCount: () => void
+}
+
+export const useUserStore = defineStore<UserStore>('user', (): UserStore => {
+  const counterStore = useCounterStore()
+  const score: Ref<number> = ref(0)
+  const addScoreFromCount = (): void => {
+    score.value += counterStore.count.value
+  }
+  return { score, addScoreFromCount } as UserStore
+})

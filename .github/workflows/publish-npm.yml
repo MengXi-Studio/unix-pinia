@@ -29,7 +29,7 @@ jobs:
     name: Build & Publish # Job 显示名称
     runs-on: ubuntu-latest # 运行环境：最新版 Ubuntu
     # 关联 GitHub Environment，必须与 npm Trusted Publisher 配置的 Environment 名称一致
-    environment: unix-utils
+    environment: unix-pinia
 
     steps:
       # 步骤1：检出仓库代码
@@ -70,7 +70,7 @@ jobs:
           echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
 
           # 查询 npm 注册表中已发布的最新版本，查询失败则返回 "none"
-          PUBLISHED_VERSION=$(npm view @meng-xi/unix-utils version --registry ${{ env.NPM_REGISTRY }} 2>/dev/null || echo "none")
+          PUBLISHED_VERSION=$(npm view @meng-xi/unix-pinia version --registry ${{ env.NPM_REGISTRY }} 2>/dev/null || echo "none")
           # 将已发布版本号写入步骤输出
           echo "published_version=$PUBLISHED_VERSION" >> $GITHUB_OUTPUT
 
@@ -96,7 +96,7 @@ jobs:
         env:
           DIST_TAG: ${{ github.ref_name == 'v1' && 'v1-lts' || 'latest' }}
         run: |
-          echo "## 📦 Published @meng-xi/unix-utils@${{ steps.version.outputs.current_version }}" >> $GITHUB_STEP_SUMMARY # 标题
+          echo "## 📦 Published @meng-xi/unix-pinia@${{ steps.version.outputs.current_version }}" >> $GITHUB_STEP_SUMMARY # 标题
           echo "" >> $GITHUB_STEP_SUMMARY # 空行
           echo "- **Version**: \`${{ steps.version.outputs.current_version }}\`" >> $GITHUB_STEP_SUMMARY # 版本号
           echo "- **Dist Tag**: \`$DIST_TAG\`" >> $GITHUB_STEP_SUMMARY # npm dist-tag

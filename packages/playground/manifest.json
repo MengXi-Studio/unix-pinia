@@ -1,25 +1,25 @@
 {
-  "name": "unix-pinia-playground",
-  "appid": "__UNI__PINIA01",
-  "description": "unix-pinia PoC 技术验证工程（vdom 模式，非蒸汽模式）",
-  "versionName": "0.1.0",
-  "versionCode": "10",
-  "uni-app-x": {
-    "styleIsolationVersion": "2",
-    "vapor": false
-  },
-  "uniStatistics": {
-    "enable": false
-  },
-  "vueVersion": "3",
-  "app-android": {
-    "distribute": {
-      "modules": {}
-    }
-  },
-  "app-ios": {
-    "distribute": {
-      "modules": {}
-    }
-  }
+	"name": "unix-pinia-playground",
+	"appid": "__UNI__0AA2919",
+	"description": "unix-pinia PoC 技术验证工程（vdom 模式，非蒸汽模式）",
+	"versionName": "0.1.0",
+	"versionCode": "10",
+	"uni-app-x": {
+		"styleIsolationVersion": "2",
+		"vapor": false
+	},
+	"uniStatistics": {
+		"enable": false
+	},
+	"vueVersion": "3",
+	"app-android": {
+		"distribute": {
+			"modules": {}
+		}
+	},
+	"app-ios": {
+		"distribute": {
+			"modules": {}
+		}
+	}
 }

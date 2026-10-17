@@ -1,0 +1,13 @@
+/**
+ * T1 跨页面断言上下文：页面间传递期望值（避免 URL 参数编解码问题）
+ * UTS 导入的 let 绑定只读，故用函数包裹内部可变状态
+ */
+let t1Expected = 0
+
+export function setT1Expected(n: number): void {
+  t1Expected = n
+}
+
+export function getT1Expected(): number {
+  return t1Expected
+}

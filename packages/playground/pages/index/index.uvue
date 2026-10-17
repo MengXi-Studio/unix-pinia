@@ -1,48 +1,65 @@
 <template>
   <scroll-view class="page">
     <view class="card">
-      <text class="title">unix-pinia PoC（vdom 模式）</text>
+      <text class="title">unix-pinia v1（vdom 模式）</text>
       <text class="item">store.count: {{ count }}</text>
       <text class="item">store.doubleCount: {{ doubleCount }}</text>
+      <text class="item">user.score: {{ score }}</text>
     </view>
 
     <view class="card">
-      <text class="title">PoC 结果（与 [verify] 日志同步）</text>
+      <text class="title">用例结果（与 [verify] 日志同步）</text>
+      <text class="item">{{ p8Result }}</text>
       <text class="item">{{ p1Result }}</text>
       <text class="item">{{ p2Result }}</text>
+      <text class="item">{{ p5Result }}</text>
+      <text class="item">{{ p6Result }}</text>
       <text class="item">{{ p3aResult }}</text>
       <text class="item">{{ p3bResult }}</text>
       <text class="item">{{ p3cResult }}</text>
       <text class="item">{{ p4Result }}</text>
-      <text class="item">{{ p5Result }}</text>
-      <text class="item">{{ p6Result }}</text>
+      <text class="item">{{ t4Result }}</text>
+      <text class="item">{{ t5Result }}</text>
+      <text class="item">{{ t6Result }}</text>
+      <text class="item">{{ t9Result }}</text>
+      <text class="item">{{ t7Result }}</text>
     </view>
 
-    <button class="btn" @click="runPoC">运行 PoC</button>
+    <button class="btn" @click="runPoC">运行全部用例</button>
     <button class="btn" @click="onInc">increment（观察 watch 与视图联动）</button>
-    <button class="btn" @click="goSecond">跳转第二页（P2 跨页面）</button>
+    <button class="btn" @click="goSecond">跳转第二页（T1 跨页面）</button>
   </scroll-view>
 </template>
 
 <script setup lang="uts">
-  import type { ComputedRef } from 'vue'
+  import type { ComputedRef, Ref } from 'vue'
+  import { defineStore, storeToRefs, patch, dispose, getStoreId, getActivePinia } from '@/uni_modules/ux-pinia'
   import { useCounterStore } from '@/stores/counter.uts'
-  import { storeToRefs } from '@/uni_modules/ux-pinia'
+  import type { CounterStore } from '@/stores/counter.uts'
+  import { useUserStore } from '@/stores/user.uts'
+  import { setT1Expected } from '@/stores/testContext.uts'
 
   const counterStore = useCounterStore()
   const { count, doubleCount } = storeToRefs(counterStore)
+  const userStore = useUserStore()
+  const { score } = storeToRefs(userStore)
 
-  // PoC 结果状态
+  // 用例结果
+  const p8Result = ref('P8 app.use挂载: 待运行')
   const p1Result = ref('P1 组合式API: 待运行')
   const p2Result = ref('P2 单例同页: 待运行')
   const p3aResult = ref('P3a reactive+Ref: 待运行')
   const p3bResult = ref('P3b reactive+Computed: 待运行')
   const p3cResult = ref('P3c reactive普通值: 待运行')
-  const p4Result = ref('P4 watch: 待运行（点击运行 PoC 自动检测）')
+  const p4Result = ref('P4 watch: 待运行')
   const p5Result = ref('P5 泛型defineStore: 待运行')
   const p6Result = ref('P6 isRef: 待运行')
+  const t4Result = ref('T4 patch: 待运行')
+  const t5Result = ref('T5 双store互调: 待运行')
+  const t6Result = ref('T6 同id幂等: 待运行')
+  const t7Result = ref('T7 dispose重建: 待运行')
+  const t9Result = ref('T9 subscribe(P9): 待运行')
 
-  // P4 触发计数
   let watchFired = 0
 
   // ===== P3 验证对象：reactive 包装含 Ref / ComputedRef / 普通值 字段的对象 =====
@@ -63,14 +80,33 @@
   }
   const p3w = reactive(p3raw)
 
-  // ===== P4：setup 顶层注册 watch（绑定组件生命周期，页面存活期间有效） =====
+  // ===== P4：setup 顶层注册 watch（字段级订阅替代形态） =====
   watch(count, (newVal: number, oldVal: number): void => {
     watchFired++
     console.log('[verify] P4 watch fired:', watchFired, 'new:', newVal, 'old:', oldVal)
   })
 
+  // ===== T7 专用 store：dispose 用例独立化（M3 复盘修正：不再污染 counter 的注册表实例）=====
+  type DisposeTestStore = {
+    value: Ref<number>,
+    setValue: (n: number) => void
+  }
+  const useDisposeTestStore = defineStore<DisposeTestStore>('dispose-test', (): DisposeTestStore => {
+    const value: Ref<number> = ref(0)
+    const setValue = (n: number): void => {
+      value.value = n
+    }
+    return { value, setValue } as DisposeTestStore
+  })
+
   const runPoC = (): void => {
-    // ===== P5：泛型 defineStore<T> 已编译通过且可调用 =====
+    // ===== P8：Pinia 实例登记（main.uts 顶层 setActivePinia(createPinia())）=====
+    // P8 裁决：原生端 app.use(Pinia实例) 不触发 install → 统一免挂载 + 顶层显式登记
+    const pinia = getActivePinia()
+    p8Result.value = 'P8 pinia实例登记: ' + (pinia != null ? 'pass（setActivePinia 生效）' : 'fail（null）')
+    console.log('[verify] P8 activePinia != null:', pinia != null)
+
+    // ===== P5：泛型 defineStore 已编译通过且可调用 =====
     p5Result.value = 'P5 泛型defineStore: pass（编译+运行均通过）'
 
     // ===== P1：store 内 ref/computed 创建与求值 =====
@@ -84,25 +120,21 @@
     p2Result.value = 'P2 单例同页: ' + (s2 == counterStore ? 'pass（同一实例）' : 'fail（不同实例）')
     console.log('[verify] P2 same instance =', s2 == counterStore)
 
-    // ===== P6：isRef 可用性（若编译器未注入 isRef，本文件编译即失败） =====
+    // ===== P6：isRef 可用性 =====
     const r6a = isRef(counterStore.count)
     const r6b = isRef(counterStore.doubleCount)
     p6Result.value = 'P6 isRef: Ref=' + (r6a ? 'true' : 'false') + ' ComputedRef=' + (r6b ? 'true' : 'false')
     console.log('[verify] P6 isRef(store.count) =', r6a, 'isRef(store.doubleCount) =', r6b)
 
-    // ===== P3a / P3b：reactive 对象的 Ref / ComputedRef 字段是否自动解包 =====
+    // ===== P3a / P3b / P3c：reactive 行为回归 =====
     const aIsRef = isRef(p3w.num)
     const bIsRef = isRef(p3w.comp)
     p3aResult.value = 'P3a reactive+Ref: ' + (aIsRef ? 'isRef=true（未解包）' : 'isRef=false（已解包）')
     p3bResult.value = 'P3b reactive+Computed: ' + (bIsRef ? 'isRef=true（未解包）' : 'isRef=false（已解包）')
     console.log('[verify] P3a wrapped.num isRef =', aIsRef, 'value:', p3w.num)
     console.log('[verify] P3b wrapped.comp isRef =', bIsRef, 'value:', p3w.comp)
-
-    // P3a 响应联动：修改原始 ref，观察 wrapped 侧读数（区分真解包转发 / 字段覆盖）
     p3num.value = 33
     console.log('[verify] P3a after raw.value=33, wrapped.num =', p3w.num)
-
-    // ===== P3c：普通值字段（官方 reactive 基线，必过项） =====
     p3w.plain = 'changed'
     p3cResult.value = 'P3c reactive普通值: ' + (p3w.plain == 'changed' ? 'pass（读写正常）' : 'fail')
     console.log('[verify] P3c plain =', p3w.plain)
@@ -111,13 +143,51 @@
     counterStore.increment()
     p4Result.value = 'P4 watch: 已触发 increment，300ms 后确认回调'
     setTimeout((): void => {
-      if (watchFired > 0) {
-        p4Result.value = 'P4 watch: pass（fired=' + watchFired.toString() + '）'
-      } else {
-        p4Result.value = 'P4 watch: fail（increment 后回调未触发）'
-      }
+      p4Result.value = 'P4 watch: ' + (watchFired > 0 ? 'pass（fired=' + watchFired.toString() + '）' : 'fail')
       console.log('[verify] P4 final watchFired =', watchFired)
     }, 300)
+
+    // ===== T4：patch（$patch 顶层映射）=====
+    const beforePatch = counterStore.count.value
+    patch(counterStore, (s: CounterStore): void => {
+      s.count.value = beforePatch + 10
+      s.reset()
+    })
+    // reset 会把 count 归零，改为直接断言 patch 生效路径：再次 patch 设置固定值
+    patch(counterStore, (s: CounterStore): void => {
+      s.count.value = 66
+    })
+    t4Result.value = 'T4 patch: ' + (counterStore.count.value == 66 ? 'pass（count=66）' : 'fail（count=' + counterStore.count.value.toString() + '）')
+    console.log('[verify] T4 patch after count =', counterStore.count.value)
+
+    // ===== T5：双 store 互调 =====
+    const cNow = counterStore.count.value
+    userStore.addScoreFromCount()
+    t5Result.value = 'T5 双store互调: ' + (userStore.score.value == cNow ? 'pass（score=' + userStore.score.value.toString() + '）' : 'fail')
+    console.log('[verify] T5 count =', cNow, 'score =', userStore.score.value)
+
+    // ===== T6：同 id 重复 defineStore 幂等 =====
+    const useCounter2 = defineStore<CounterStore>('counter', (): CounterStore => {
+      const n: Ref<number> = ref(99)
+      const noop = (): void => {}
+      return { count: n, doubleCount: p3comp, increment: noop, reset: noop } as CounterStore
+    })
+    const sFromDup = useCounter2()
+    t6Result.value = 'T6 同id幂等: ' + (sFromDup == counterStore ? 'pass（返回既有实例）' : 'fail（新实例）')
+    console.log('[verify] T6 dup useStore same =', sFromDup == counterStore)
+
+    // ===== P9：subscribe 已裁掉（deep watch 在 Android 端对 RefImpl 字段不触发，双端不一致）=====
+    t9Result.value = 'P9 subscribe: 已裁掉（替代：字段级 watch，见 P4）'
+    console.log('[verify] P9 subscribe 已按预案裁掉，字段级 watch 为替代方案')
+
+    // ===== T7：dispose 后重建（独立测试 store，不触碰 counter）=====
+    const oldDs = useDisposeTestStore()
+    oldDs.setValue(7)
+    dispose(oldDs)
+    const newDs = useDisposeTestStore()
+    const rebuilt = newDs != oldDs && newDs.value.value == 0
+    t7Result.value = 'T7 dispose重建: ' + (rebuilt ? 'pass（新实例 value=0, id=' + getStoreId(newDs) + '）' : 'fail')
+    console.log('[verify] T7 dispose-test rebuilt =', rebuilt, 'id =', getStoreId(newDs))
   }
 
   const onInc = (): void => {
@@ -126,11 +196,13 @@
 
   const goSecond = (): void => {
     counterStore.increment()
+    // T1 跨页面断言：记录离开首页时的状态，second 页比对（证明同一实例）
+    setT1Expected(counterStore.count.value)
+    console.log('[verify] T1 leave index, count =', counterStore.count.value)
     uni.navigateTo({ url: '/pages/second/second' })
   }
 
-  // 进入页面自动运行 PoC（对齐 unix-storage playground 的 [verify] 自动验证模式）
-  // 注意：UTS 无声明提升（UTS110111150/165），onMounted 必须位于 runPoC 声明之后
+  // 进入页面自动运行（UTS 无声明提升，onMounted 位于各函数声明之后）
   onMounted((): void => {
     console.log('[verify] index page onMounted, auto run PoC')
     runPoC()

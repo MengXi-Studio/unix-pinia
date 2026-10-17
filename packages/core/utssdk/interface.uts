@@ -1,0 +1,12 @@
+/**
+ * unix-pinia 对外基础类型声明
+ *
+ * 说明：PiniaPlugin / PiniaPluginContext 依赖 Pinia 类型（class），
+ * 为避免循环类型导入，二者定义在 pinia.uts（类型与实现同文件）。
+ */
+
+/** 订阅取消函数（subscribe / watch 返回） */
+export type Unsubscribe = () => void
+
+/** subscribe 的状态变化回调（v1 简化形态：无参数；与 Pinia mutation 事件的差异见差异对照表） */
+export type SubscribeCallback = () => void

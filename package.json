@@ -10,7 +10,18 @@
 	],
 	"scripts": {
 		"sync:uni-modules": "node scripts/sync-uni-modules.mjs",
-		"sync:uni-modules:check": "node scripts/sync-uni-modules.mjs --check"
+		"sync:uni-modules:check": "node scripts/sync-uni-modules.mjs --check",
+		"dev:docs": "pnpm --filter @meng-xi/unix-pinia-docs dev",
+		"build:docs": "pnpm --filter @meng-xi/unix-pinia-docs build",
+		"preview:docs": "pnpm --filter @meng-xi/unix-pinia-docs preview",
+		"release": "bumpp",
+		"typecheck": "tsc -p tsconfig.json --noEmit"
+	},
+	"devDependencies": {
+		"@types/node": "^20.0.0",
+		"bumpp": "^12.3.0",
+		"prettier": "^3.8.1",
+		"typescript": "^5.9.3"
 	},
 	"author": {
 		"name": "PedroQue99",
