@@ -22,7 +22,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const src = join(root, 'packages/core')
 const dest = join(root, 'packages/playground/uni_modules/ux-pinia')
 
-/** 插件目录只需要这些内容（core 侧 README-en.md 等面向 npm 仓库浏览场景，playground 不需要） */
+/** 插件目录只需要这些内容（core 侧 README-en.md 面向 npm 仓库浏览场景，playground 不需要） */
 const INCLUDE = ['utssdk', 'README.md', 'license.md']
 
 /** 同步时需在目标目录保留的手工维护文件（不复制、不删除、校验豁免）：
