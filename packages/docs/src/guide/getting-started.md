@@ -2,14 +2,7 @@
 
 ## 安装
 
-**npm**——安装后将包内容同步到工程 `uni_modules/ux-pinia/`（编译器不扫描 node_modules）：
-
-```sh
-pnpm add @meng-xi/unix-pinia
-mkdir -p uni_modules && cp -R node_modules/@meng-xi/unix-pinia uni_modules/ux-pinia
-```
-
-**插件市场**：搜索 `ux-pinia` 导入 HBuilderX。
+请先按[安装](./installation)页完成引入（npm 同步到 `uni_modules/ux-pinia/` 或插件市场导入）。
 
 ## 定义 store
 
