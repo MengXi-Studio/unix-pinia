@@ -3,6 +3,9 @@ import { defineConfig } from 'vitepress'
 /** 网站部署基础路径（CI 可经 DOCS_BASE 注入，本地默认 /unix-pinia/） */
 const base = process.env.DOCS_BASE || '/unix-pinia/'
 
+/** 将根路径资源拼接到当前 base 下，避免 favicon 等资源 404 */
+const asset = (p: string) => base + p.replace(/^\//, '')
+
 export default defineConfig({
 	/** 网站部署基础路径（GitHub Pages 项目页必须为仓库名） */
 	base,
@@ -11,6 +14,18 @@ export default defineConfig({
 	description: '为 uni-app x 提供 Pinia 风格的状态管理库（UTS 编写，setup 式）',
 
 	lastUpdated: true,
+
+	head: [
+		['link', { rel: 'icon', type: 'image/png', href: asset('logo.png') }],
+		['link', { rel: 'icon', href: asset('favicon.ico') }],
+
+		['meta', { property: 'og:type', content: 'website' }],
+		['meta', { property: 'og:title', content: 'Unix Pinia' }],
+
+		['meta', { property: 'twitter:title', content: 'Unix Pinia' }],
+		['meta', { property: 'twitter:card', content: 'summary_large_image' }],
+		['meta', { property: 'twitter:description', content: '为 uni-app x 提供 Pinia 风格的状态管理库' }]
+	],
 
 	markdown: {
 		/** 代码块高亮主题 */
@@ -23,6 +38,9 @@ export default defineConfig({
 	},
 
 	themeConfig: {
+		/** 主题 logo（VitePress 自动拼 base） */
+		logo: { src: '/logo.png', alt: 'Unix Pinia' },
+
 		/** 本地搜索 */
 		search: {
 			provider: 'local',
