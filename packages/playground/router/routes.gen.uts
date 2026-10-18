@@ -1,0 +1,59 @@
+/**
+ * 本文件由 @meng-xi/unix-router/vite-plugin 自动生成，请勿整体手改。
+ * preserveRouteChanges 已开启：重新生成时保留你追加的自定义字段与整条自定义路由；
+ * 页面级声明请使用页面内的 defineUniPage 宏或 <route-config> 块。
+ */
+import type { RouteConfig, RouteMeta } from '@/uni_modules/ux-router/utssdk/index.uts'
+
+export const routes: RouteConfig[] = [
+	{
+		path: 'pages/index/index',
+		name: 'home',
+		meta: { title: 'unix-pinia' },
+	},
+	{
+		path: 'pages-sub/basic/basic',
+		name: 'basic',
+		meta: { title: '基础用法' },
+	},
+	{
+		path: 'pages-sub/cross-page/cross-page',
+		name: 'cross-page',
+		meta: { title: '跨页面共享（写入）' },
+	},
+	{
+		path: 'pages-sub/cross-store/cross-store',
+		name: 'cross-store',
+		meta: { title: '跨 store 依赖' },
+	},
+	{
+		path: 'pages-sub/cross-verify/cross-verify',
+		name: 'cross-verify',
+		meta: { title: '跨页面共享（断言）' },
+	},
+	{
+		path: 'pages-sub/instance-api/instance-api',
+		name: 'instance-api',
+		meta: { title: '实例 API' },
+	},
+	{
+		path: 'pages-sub/plugin/plugin',
+		name: 'plugin',
+		meta: { title: '插件与 Pinia 实例' },
+	},
+	{
+		path: 'pages-sub/reactive/reactive',
+		name: 'reactive',
+		meta: { title: '响应式矩阵' },
+	},
+	{
+		path: 'pages-sub/singleton/singleton',
+		name: 'singleton',
+		meta: { title: '单例与幂等' },
+	},
+	{
+		path: 'pages-sub/subscribe/subscribe',
+		name: 'subscribe',
+		meta: { title: '状态订阅' },
+	},
+]

@@ -23,6 +23,11 @@
 </template>
 
 <script setup lang="uts">
+	// 页面声明宏：编译期由 ux-router vite 插件剥离，驱动 pages.json 与路由表生成
+	defineUniPage({
+		title: '插件与 Pinia 实例',
+		name: 'plugin'
+	})
 	import { ref } from 'vue'
 	import type { PiniaPluginContext } from '@/uni_modules/ux-pinia'
 	import { defineStore, getActivePinia, setActivePinia, createPinia, dispose } from '@/uni_modules/ux-pinia'

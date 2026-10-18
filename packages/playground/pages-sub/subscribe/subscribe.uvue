@@ -29,6 +29,11 @@
 </template>
 
 <script setup lang="uts">
+	// 页面声明宏：编译期由 ux-router vite 插件剥离，驱动 pages.json 与路由表生成
+	defineUniPage({
+		title: '状态订阅',
+		name: 'subscribe'
+	})
 	import { ref } from 'vue'
 	import { storeToRefs } from '@/uni_modules/ux-pinia'
 	import { useCounterStore } from '@/stores/counter.uts'

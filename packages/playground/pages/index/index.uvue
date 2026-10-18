@@ -3,84 +3,86 @@
 		<view class="container">
 			<view class="banner">
 				<text class="banner-title">@meng-xi/unix-pinia</text>
-				<text class="banner-sub">为 uni-app x 提供 Pinia 风格的状态管理 · 功能验证示例</text>
+				<text class="banner-sub">为 uni-app x 提供 Pinia 风格的状态管理库 · 功能验证示例</text>
 			</view>
 
 			<text class="group-title">基础能力</text>
 			<view class="cell-group">
-				<view class="cell" @click="go('/pages-sub/basic/basic')">
+				<RouterLink to="pages-sub/basic/basic" class="cell">
 					<view class="cell-main">
 						<text class="cell-title">基础用法</text>
 						<text class="cell-desc">defineStore / state / getter / action 与模板绑定</text>
 					</view>
 					<text class="cell-arrow">›</text>
-				</view>
-				<view class="cell" @click="go('/pages-sub/reactive/reactive')">
+				</RouterLink>
+				<RouterLink to="pages-sub/reactive/reactive" class="cell">
 					<view class="cell-main">
 						<text class="cell-title">响应式矩阵</text>
 						<text class="cell-desc">reactive 解包行为 / 字段级 watch / isRef 实测</text>
 					</view>
 					<text class="cell-arrow">›</text>
-				</view>
+				</RouterLink>
 			</view>
 
 			<text class="group-title">单例与组合</text>
 			<view class="cell-group">
-				<view class="cell" @click="go('/pages-sub/singleton/singleton')">
+				<RouterLink to="pages-sub/singleton/singleton" class="cell">
 					<view class="cell-main">
 						<text class="cell-title">单例与幂等</text>
 						<text class="cell-desc">同 id 幂等返回既有实例，不同 id 相互独立</text>
 					</view>
 					<text class="cell-arrow">›</text>
-				</view>
-				<view class="cell" @click="go('/pages-sub/cross-store/cross-store')">
+				</RouterLink>
+				<RouterLink to="pages-sub/cross-store/cross-store" class="cell">
 					<view class="cell-main">
 						<text class="cell-title">跨 store 依赖</text>
 						<text class="cell-desc">setup 内组合其他 store，action 联动修改</text>
 					</view>
 					<text class="cell-arrow">›</text>
-				</view>
-				<view class="cell" @click="go('/pages-sub/cross-page/cross-page')">
+				</RouterLink>
+				<RouterLink to="pages-sub/cross-page/cross-page" class="cell">
 					<view class="cell-main">
 						<text class="cell-title">跨页面共享</text>
 						<text class="cell-desc">本页写入 → 断言页比对 → 返回后视图联动</text>
 					</view>
 					<text class="cell-arrow">›</text>
-				</view>
+				</RouterLink>
 			</view>
 
 			<text class="group-title">实例 API 与插件</text>
 			<view class="cell-group">
-				<view class="cell" @click="go('/pages-sub/instance-api/instance-api')">
+				<RouterLink to="pages-sub/instance-api/instance-api" class="cell">
 					<view class="cell-main">
 						<text class="cell-title">实例 API</text>
 						<text class="cell-desc">patch / getStoreId / dispose 重建</text>
 					</view>
 					<text class="cell-arrow">›</text>
-				</view>
-				<view class="cell" @click="go('/pages-sub/subscribe/subscribe')">
+				</RouterLink>
+				<RouterLink to="pages-sub/subscribe/subscribe" class="cell">
 					<view class="cell-main">
 						<text class="cell-title">状态订阅</text>
 						<text class="cell-desc">字段级 watch 订阅与取消（$subscribe 替代）</text>
 					</view>
 					<text class="cell-arrow">›</text>
-				</view>
-				<view class="cell" @click="go('/pages-sub/plugin/plugin')">
+				</RouterLink>
+				<RouterLink to="pages-sub/plugin/plugin" class="cell">
 					<view class="cell-main">
 						<text class="cell-title">插件与 Pinia 实例</text>
 						<text class="cell-desc">createPinia / setActivePinia / 插件调度</text>
 					</view>
 					<text class="cell-arrow">›</text>
-				</view>
+				</RouterLink>
 			</view>
 		</view>
 	</scroll-view>
 </template>
 
 <script setup lang="uts">
-	const go = (url: string): void => {
-		uni.navigateTo({ url })
-	}
+	// 页面声明宏：编译期由 ux-router vite 插件剥离，驱动 pages.json 与路由表生成
+	defineUniPage({
+		title: 'unix-pinia',
+		name: 'home'
+	})
 </script>
 
 <style>

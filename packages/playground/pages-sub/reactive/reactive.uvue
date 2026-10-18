@@ -24,6 +24,11 @@
 </template>
 
 <script setup lang="uts">
+	// 页面声明宏：编译期由 ux-router vite 插件剥离，驱动 pages.json 与路由表生成
+	defineUniPage({
+		title: '响应式矩阵',
+		name: 'reactive'
+	})
 	import type { Ref, ComputedRef } from 'vue'
 	import { ref } from 'vue'
 
