@@ -12,12 +12,12 @@
 			</view>
 
 			<view class="row">
-				<button size="mini" @click="counterStore.increment">increment</button>
-				<button size="mini" @click="counterStore.reset">reset</button>
+				<button class="row-btn" size="mini" @click="counterStore.increment">increment</button>
+				<button class="row-btn" size="mini" @click="counterStore.reset">reset</button>
 			</view>
 
 			<view class="row">
-				<button size="mini" @click="goVerify">跳转断言页（先 increment 再比对）</button>
+				<button class="row-btn" size="mini" @click="goVerify">跳转断言页（先 increment 再比对）</button>
 			</view>
 		</view>
 	</scroll-view>

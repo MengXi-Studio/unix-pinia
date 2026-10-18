@@ -13,8 +13,8 @@
 			</view>
 
 			<view class="row">
-				<button size="mini" @click="onInc">increment（返回写入方后应联动）</button>
-				<button size="mini" @click="onBack">返回写入方</button>
+				<button class="row-btn" size="mini" @click="onInc">increment（返回写入方后应联动）</button>
+				<button class="row-btn" size="mini" @click="onBack">返回写入方</button>
 			</view>
 		</view>
 	</scroll-view>

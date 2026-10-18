@@ -41,7 +41,11 @@
 	.row {
 		flex-direction: row;
 		flex-wrap: wrap;
-		gap: 12rpx;
+	}
+
+	.row-btn {
+		margin-right: 12rpx;
+		margin-bottom: 12rpx;
 	}
 
 	.logs {
@@ -76,4 +80,5 @@
 	.btn {
 		margin-bottom: 16rpx;
 	}
+
 </style>

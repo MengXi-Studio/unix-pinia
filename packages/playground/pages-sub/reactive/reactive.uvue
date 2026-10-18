@@ -8,14 +8,14 @@
 
 			<text class="section">用例</text>
 			<view class="row">
-				<button size="mini" @click="run">重新运行</button>
-				<button size="mini" @click="num.value = num.value + 1">num+1（观察 watch）</button>
+				<button class="row-btn" size="mini" @click="run">重新运行</button>
+				<button class="row-btn" size="mini" @click="num.value = num.value + 1">num+1（观察 watch）</button>
 			</view>
 
 			<view class="logs">
 				<view class="logs-head">
 					<text class="logs-title">运行日志（console 同步输出 [verify] 前缀日志）</text>
-					<button size="mini" @click="clearLog">清空</button>
+					<button class="row-btn" size="mini" @click="clearLog">清空</button>
 				</view>
 				<text v-for="(line, index) in logs" :key="index" class="log">{{ line }}</text>
 			</view>
