@@ -1,0 +1,73 @@
+<template>
+	<scroll-view style="flex:1">
+		<view class="container">
+			<view class="intro">
+				<text class="intro-title">功能说明</text>
+				<text class="intro-text">模块级注册表保证单例：同 id 多次 useStore 返回同一实例（跨页面共享的基础）；同 id 重复 defineStore 警告并保持幂等；不同 id 各自独立。进入页面自动运行。</text>
+			</view>
+
+			<text class="section">用例</text>
+			<view class="row">
+				<button size="mini" @click="run">重新运行</button>
+			</view>
+
+			<view class="logs">
+				<view class="logs-head">
+					<text class="logs-title">运行日志（console 同步输出 [verify] 前缀日志）</text>
+					<button size="mini" @click="clearLog">清空</button>
+				</view>
+				<text v-for="(line, index) in logs" :key="index" class="log">{{ line }}</text>
+			</view>
+		</view>
+	</scroll-view>
+</template>
+
+<script setup lang="uts">
+	import type { Ref } from 'vue'
+	import { ref } from 'vue'
+	import { defineStore, storeToRefs } from '@/uni_modules/ux-pinia'
+	import { useCounterStore } from '@/stores/counter.uts'
+	import type { CounterStore } from '@/stores/counter.uts'
+	import { useUserStore } from '@/stores/user.uts'
+	import { mark } from '@/common/test-utils.uts'
+
+	const logs = ref<Array<string>>([])
+
+	function log(msg: string): void {
+		const line = '[verify] ' + msg
+		logs.value.unshift(line)
+		if (logs.value.length > 200) {
+			logs.value.splice(200, logs.value.length - 200)
+		}
+		console.log(line)
+	}
+
+	function clearLog(): void {
+		logs.value.splice(0, logs.value.length)
+	}
+
+	/** S1 单例与幂等 */
+	function run(): void {
+		// S1-1 同页多次 useStore：同一实例
+		const a = useCounterStore()
+		const b = useCounterStore()
+		log(mark('S1-1 同 id 两次 useStore 同一实例', a == b, 'a===b'))
+
+		// S1-2 同 id 重复 defineStore：幂等（控制台同步输出警告）
+		const dupUse = defineStore<CounterStore>('counter', (): CounterStore => {
+			const n: Ref<number> = ref(99)
+			const noop = (): void => {}
+			return { count: n, name: ref('dup'), doubleCount: a.doubleCount, increment: noop, setName: noop, reset: noop } as CounterStore
+		})
+		const c = dupUse()
+		log(mark('S1-2 同 id 重复 defineStore 幂等', c == a, '返回既有实例（控制台有警告）'))
+
+		// S1-3 不同 id 相互独立
+		const u = useUserStore()
+		log(mark('S1-3 不同 id 各自独立', a != u, 'counter 与 user 为不同实例'))
+	}
+
+	onMounted((): void => {
+		run()
+	})
+</script>

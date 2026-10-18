@@ -1,20 +1,77 @@
 {
-  "pages": [
-    {
-      "path": "pages/index/index",
-      "style": {
-        "navigationBarTitleText": "unix-pinia PoC"
-      }
-    },
-    {
-      "path": "pages/second/second",
-      "style": {
-        "navigationBarTitleText": "P2 跨页面验证"
-      }
-    }
-  ],
-  "globalStyle": {
-    "navigationBarTextStyle": "black",
-    "navigationBarBackgroundColor": "#FFFFFF"
-  }
+	"pages": [
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "unix-pinia"
+			}
+		}
+	],
+	"subPackages": [
+		{
+			"root": "pages-sub",
+			"pages": [
+				{
+					"path": "basic/basic",
+					"style": {
+						"navigationBarTitleText": "基础用法"
+					}
+				},
+				{
+					"path": "reactive/reactive",
+					"style": {
+						"navigationBarTitleText": "响应式矩阵"
+					}
+				},
+				{
+					"path": "singleton/singleton",
+					"style": {
+						"navigationBarTitleText": "单例与幂等"
+					}
+				},
+				{
+					"path": "instance-api/instance-api",
+					"style": {
+						"navigationBarTitleText": "实例 API"
+					}
+				},
+				{
+					"path": "cross-store/cross-store",
+					"style": {
+						"navigationBarTitleText": "跨 store 依赖"
+					}
+				},
+				{
+					"path": "subscribe/subscribe",
+					"style": {
+						"navigationBarTitleText": "状态订阅"
+					}
+				},
+				{
+					"path": "plugin/plugin",
+					"style": {
+						"navigationBarTitleText": "插件与 Pinia 实例"
+					}
+				},
+				{
+					"path": "cross-page/cross-page",
+					"style": {
+						"navigationBarTitleText": "跨页面共享（写入）"
+					}
+				},
+				{
+					"path": "cross-verify/cross-verify",
+					"style": {
+						"navigationBarTitleText": "跨页面共享（断言）"
+					}
+				}
+			]
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "unix-pinia",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8"
+	}
 }

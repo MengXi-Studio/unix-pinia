@@ -1,0 +1,23 @@
+/**
+ * playground 共享测试工具（对齐 unix-storage playground/common）
+ */
+
+/** 断言格式化：相等为 pass，否则 FAIL 并附实际/期望值 */
+export function markEq(name: string, actual: number, expected: number): string {
+	const pass = actual == expected
+	return name + ': ' + (pass ? 'pass' : 'FAIL') + ' (actual=' + actual.toString() + ', expected=' + expected.toString() + ')'
+}
+
+/** 断言格式化：布尔条件 */
+export function mark(name: string, pass: boolean, detail: string): string {
+	return name + ': ' + (pass ? 'pass' : 'FAIL') + (detail == '' ? '' : ' (' + detail + ')')
+}
+
+/** 等待指定毫秒（异步用例使用） */
+export function sleep(ms: number): Promise<void> {
+	return new Promise<void>((resolve) => {
+		setTimeout(() => {
+			resolve()
+		}, ms)
+	})
+}

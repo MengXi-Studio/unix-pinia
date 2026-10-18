@@ -1,0 +1,97 @@
+<template>
+	<scroll-view style="flex:1">
+		<view class="container">
+			<view class="intro">
+				<text class="intro-title">功能说明</text>
+				<text class="intro-text">实测 reactive 对 Ref / ComputedRef 字段的行为：Web 端（JS Proxy）自动解包，Android 端（Kotlin 无 Proxy）保持 RefImpl 原样——unix-pinia 据此采用透传形态（方案 B），不依赖 reactive 解包。isRef 的返回即双端差异的直接证据，两种结果均为预期。进入页面自动运行。</text>
+			</view>
+
+			<text class="section">用例</text>
+			<view class="row">
+				<button size="mini" @click="run">重新运行</button>
+				<button size="mini" @click="num.value = num.value + 1">num+1（观察 watch）</button>
+			</view>
+
+			<view class="logs">
+				<view class="logs-head">
+					<text class="logs-title">运行日志（console 同步输出 [verify] 前缀日志）</text>
+					<button size="mini" @click="clearLog">清空</button>
+				</view>
+				<text v-for="(line, index) in logs" :key="index" class="log">{{ line }}</text>
+			</view>
+		</view>
+	</scroll-view>
+</template>
+
+<script setup lang="uts">
+	import type { Ref, ComputedRef } from 'vue'
+	import { ref } from 'vue'
+
+	const logs = ref<Array<string>>([])
+
+	function log(msg: string): void {
+		const line = '[verify] ' + msg
+		logs.value.unshift(line)
+		if (logs.value.length > 200) {
+			logs.value.splice(200, logs.value.length - 200)
+		}
+		console.log(line)
+	}
+
+	function clearLog(): void {
+		logs.value.splice(0, logs.value.length)
+	}
+
+	// 响应式矩阵验证对象：reactive 包装含 Ref / ComputedRef / 普通值字段的对象
+	type P3State = {
+		num: Ref<number>,
+		comp: ComputedRef<number>,
+		plain: string
+	}
+
+	const num = ref(11)
+	const comp = computed((): number => {
+		return 22
+	})
+	const raw: P3State = {
+		num: num,
+		comp: comp,
+		plain: 'plain-value'
+	}
+	const wrapped = reactive(raw)
+
+	let watchFired = 0
+
+	// R1-6 字段级 watch（顶层注册，页面生命周期内有效）
+	watch(num, (newVal: number, oldVal: number): void => {
+		watchFired++
+		log('R1-6 watch 触发第 ' + watchFired.toString() + ' 次：' + oldVal.toString() + ' -> ' + newVal.toString())
+	})
+
+	/** R1 响应式矩阵 */
+	function run(): void {
+		// R1-1 普通值字段（reactive 官方基线，双端一致）
+		wrapped.plain = 'changed'
+		log('R1-1 reactive 普通字段读写：' + (wrapped.plain == 'changed' ? 'pass' : 'FAIL'))
+
+		// R1-2 reactive + Ref 字段：isRef 结果即双端差异的直接证据
+		const aIsRef = isRef(wrapped.num)
+		log('R1-2 reactive+Ref isRef=' + (aIsRef ? 'true（Android 端预期：保持 RefImpl）' : 'false（Web 端预期：已解包）'))
+
+		// R1-3 响应联动：改原始 ref，wrapped 侧读数应联动（两种形态下引用相同）
+		num.value = 33
+		log('R1-3 原始 ref 改 33 后 wrapped.num=' + wrapped.num + '（联动即响应链路完好）')
+
+		// R1-4 reactive + ComputedRef 字段
+		const bIsRef = isRef(wrapped.comp)
+		log('R1-4 reactive+Computed isRef=' + (bIsRef ? 'true（Android 端预期）' : 'false（Web 端预期）') + ' value=' + wrapped.comp)
+
+		// R1-5 isRef 基线
+		const r5 = isRef(num) && isRef(comp) && !isRef(1)
+		log('R1-5 isRef 基线（ref=true computed=true 非ref=false）：' + (r5 ? 'pass' : 'FAIL'))
+	}
+
+	onMounted((): void => {
+		run()
+	})
+</script>

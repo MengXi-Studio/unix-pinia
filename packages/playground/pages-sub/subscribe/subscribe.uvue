@@ -1,0 +1,107 @@
+<template>
+	<scroll-view style="flex:1">
+		<view class="container">
+			<view class="intro">
+				<text class="intro-title">功能说明</text>
+				<text class="intro-text">状态订阅使用字段级 watch（整体 $subscribe 已裁掉：deep watch 在 Android 端对 RefImpl 字段不触发，双端实测不一致）。watch 返回 stop 函数，调用后不再触发。进入页面自动运行。</text>
+			</view>
+
+			<view class="card">
+				<text class="card-line">count: {{ count }}</text>
+				<text class="card-line">已触发次数: {{ fired }}</text>
+			</view>
+
+			<text class="section">用例</text>
+			<view class="row">
+				<button size="mini" @click="run">运行（订阅→触发→取消→复验）</button>
+				<button size="mini" @click="counterStore.increment">increment</button>
+			</view>
+
+			<view class="logs">
+				<view class="logs-head">
+					<text class="logs-title">运行日志（console 同步输出 [verify] 前缀日志）</text>
+					<button size="mini" @click="clearLog">清空</button>
+				</view>
+				<text v-for="(line, index) in logs" :key="index" class="log">{{ line }}</text>
+			</view>
+		</view>
+	</scroll-view>
+</template>
+
+<script setup lang="uts">
+	import { ref } from 'vue'
+	import { storeToRefs } from '@/uni_modules/ux-pinia'
+	import { useCounterStore } from '@/stores/counter.uts'
+	import { mark, markEq } from '@/common/test-utils.uts'
+
+	const counterStore = useCounterStore()
+	const { count } = storeToRefs(counterStore)
+
+	const fired = ref(0)
+	const logs = ref<Array<string>>([])
+
+	function log(msg: string): void {
+		const line = '[verify] ' + msg
+		logs.value.unshift(line)
+		if (logs.value.length > 200) {
+			logs.value.splice(200, logs.value.length - 200)
+		}
+		console.log(line)
+	}
+
+	function clearLog(): void {
+		logs.value.splice(0, logs.value.length)
+	}
+
+	let stop: (() => void) | null = null
+
+	/** U1 状态订阅 */
+	function run(): void {
+		// 重复运行前先释放旧订阅
+		if (stop != null) {
+			stop()
+			stop = null
+		}
+		fired.value = 0
+
+		// U1-1 注册字段级订阅
+		stop = watch(count, (newVal: number, oldVal: number): void => {
+			fired.value++
+			log('U1 watch 触发：' + oldVal.toString() + ' -> ' + newVal.toString() + '（第 ' + fired.value.toString() + ' 次）')
+		})
+		log('U1-1 字段级 watch 已注册')
+
+		// U1-2 触发一次
+		counterStore.increment()
+		setTimeout((): void => {
+			log(markEq('U1-2 修改后回调触发', fired.value, 1))
+
+			// U1-3 stop 取消后不再触发
+			stop!()
+			stop = null
+			counterStore.increment()
+			setTimeout((): void => {
+				log(markEq('U1-3 stop 后不再触发', fired.value, 1))
+			}, 200)
+		}, 200)
+	}
+
+	onMounted((): void => {
+		run()
+	})
+</script>
+
+<style>
+	.card {
+		flex-direction: column;
+		background-color: #ffffff;
+		border-radius: 16rpx;
+		padding: 24rpx;
+	}
+
+	.card-line {
+		font-size: 28rpx;
+		color: #1a1a1a;
+		margin-bottom: 8rpx;
+	}
+</style>

@@ -1,0 +1,89 @@
+<template>
+	<scroll-view style="flex:1">
+		<view class="container">
+			<view class="intro">
+				<text class="intro-title">功能说明</text>
+				<text class="intro-text">setup 式 defineStore：state 用 Ref、getter 用 ComputedRef、action 用箭头函数。脚本访问 state 需 .value（UTS 无 Proxy 不自动解包），模板经 storeToRefs 解构后自动解包。进入页面自动运行。</text>
+			</view>
+
+			<view class="card">
+				<text class="card-line">count: {{ count }}</text>
+				<text class="card-line">doubleCount: {{ doubleCount }}</text>
+				<text class="card-line">name: {{ name }}</text>
+			</view>
+
+			<text class="section">用例</text>
+			<view class="row">
+				<button size="mini" @click="run">重新运行</button>
+				<button size="mini" @click="counterStore.increment">increment</button>
+				<button size="mini" @click="counterStore.reset">reset</button>
+			</view>
+
+			<view class="logs">
+				<view class="logs-head">
+					<text class="logs-title">运行日志（console 同步输出 [verify] 前缀日志）</text>
+					<button size="mini" @click="clearLog">清空</button>
+				</view>
+				<text v-for="(line, index) in logs" :key="index" class="log">{{ line }}</text>
+			</view>
+		</view>
+	</scroll-view>
+</template>
+
+<script setup lang="uts">
+	import { ref } from 'vue'
+	import { storeToRefs } from '@/uni_modules/ux-pinia'
+	import { useCounterStore } from '@/stores/counter.uts'
+	import { markEq } from '@/common/test-utils.uts'
+
+	const counterStore = useCounterStore()
+	const { count, name, doubleCount } = storeToRefs(counterStore)
+
+	const logs = ref<Array<string>>([])
+
+	function log(msg: string): void {
+		const line = '[verify] ' + msg
+		logs.value.unshift(line)
+		if (logs.value.length > 200) {
+			logs.value.splice(200, logs.value.length - 200)
+		}
+		console.log(line)
+	}
+
+	function clearLog(): void {
+		logs.value.splice(0, logs.value.length)
+	}
+
+	/** B1 基础用法 */
+	function run(): void {
+		counterStore.reset()
+		log('B1-1 初始 state count=' + counterStore.count.value.toString() + ' name=' + counterStore.name.value)
+		counterStore.increment()
+		log(markEq('B1-2 action 修改后 count', counterStore.count.value, 1))
+		log(markEq('B1-3 getter 派生 doubleCount=count*2', counterStore.doubleCount.value, counterStore.count.value * 2))
+		counterStore.setName('unix-pinia')
+		log('B1-4 action 传参 setName → name=' + counterStore.name.value)
+		counterStore.reset()
+		log(markEq('B1-5 reset 后 count', counterStore.count.value, 0))
+		log('B1 用例完成，模板绑定实时联动（点 increment 观察）')
+	}
+
+	onMounted((): void => {
+		run()
+	})
+</script>
+
+<style>
+	.card {
+		flex-direction: column;
+		background-color: #ffffff;
+		border-radius: 16rpx;
+		padding: 24rpx;
+	}
+
+	.card-line {
+		font-size: 28rpx;
+		color: #1a1a1a;
+		margin-bottom: 8rpx;
+	}
+</style>

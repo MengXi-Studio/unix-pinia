@@ -1,0 +1,94 @@
+<template>
+	<scroll-view style="flex:1">
+		<view class="container">
+			<view class="intro">
+				<text class="intro-title">功能说明</text>
+				<text class="intro-text">setup 内直接调用对方 useStore 即可组合 store（注册表保证单例）；推荐在 action 内跨 store 修改，getter 内避免跨 store 循环依赖。进入页面自动运行。</text>
+			</view>
+
+			<view class="card">
+				<text class="card-line">counter.count: {{ count }}</text>
+				<text class="card-line">user.score: {{ score }}</text>
+			</view>
+
+			<text class="section">用例</text>
+			<view class="row">
+				<button size="mini" @click="run">重新运行</button>
+				<button size="mini" @click="userStore.addScoreFromCount">addScoreFromCount</button>
+			</view>
+
+			<view class="logs">
+				<view class="logs-head">
+					<text class="logs-title">运行日志（console 同步输出 [verify] 前缀日志）</text>
+					<button size="mini" @click="clearLog">清空</button>
+				</view>
+				<text v-for="(line, index) in logs" :key="index" class="log">{{ line }}</text>
+			</view>
+		</view>
+	</scroll-view>
+</template>
+
+<script setup lang="uts">
+	import { ref } from 'vue'
+	import { storeToRefs } from '@/uni_modules/ux-pinia'
+	import { useCounterStore } from '@/stores/counter.uts'
+	import { useUserStore } from '@/stores/user.uts'
+	import { mark, markEq } from '@/common/test-utils.uts'
+
+	const counterStore = useCounterStore()
+	const { count } = storeToRefs(counterStore)
+	const userStore = useUserStore()
+	const { score } = storeToRefs(userStore)
+
+	const logs = ref<Array<string>>([])
+
+	function log(msg: string): void {
+		const line = '[verify] ' + msg
+		logs.value.unshift(line)
+		if (logs.value.length > 200) {
+			logs.value.splice(200, logs.value.length - 200)
+		}
+		console.log(line)
+	}
+
+	function clearLog(): void {
+		logs.value.splice(0, logs.value.length)
+	}
+
+	/** C1 跨 store 依赖 */
+	function run(): void {
+		// C1-1 counter 的 action 修改后，user 的 action 读取到最新值
+		counterStore.reset()
+		counterStore.increment()
+		counterStore.increment()
+		const before = counterStore.count.value
+		userStore.addScoreFromCount()
+		log(markEq('C1-1 user 读取 counter 最新值并累加 score', userStore.score.value, before))
+
+		// C1-2 再次调用持续累加（跨 store 状态持久）
+		userStore.addScoreFromCount()
+		log(markEq('C1-2 再次调用累加', userStore.score.value, before * 2))
+
+		// C1-3 双 store 实例共存
+		log(mark('C1-3 双 store 独立共存', counterStore != userStore, '不同 id 不同实例'))
+	}
+
+	onMounted((): void => {
+		run()
+	})
+</script>
+
+<style>
+	.card {
+		flex-direction: column;
+		background-color: #ffffff;
+		border-radius: 16rpx;
+		padding: 24rpx;
+	}
+
+	.card-line {
+		font-size: 28rpx;
+		color: #1a1a1a;
+		margin-bottom: 8rpx;
+	}
+</style>

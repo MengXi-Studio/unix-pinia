@@ -1,0 +1,107 @@
+<template>
+	<scroll-view style="flex:1">
+		<view class="container">
+			<view class="intro">
+				<text class="intro-title">功能说明</text>
+				<text class="intro-text">实例 API 以顶层函数形态提供（UTS 无 Proxy，store 对象上无法挂方法）：patch 对应 $patch（仅 mutator 形态）、getStoreId 对应 $id、dispose 对应 $dispose。dispose 后既有引用成为孤儿实例，本页使用独立测试 store 验证。进入页面自动运行。</text>
+			</view>
+
+			<view class="card">
+				<text class="card-line">counter.count: {{ count }}</text>
+			</view>
+
+			<text class="section">用例</text>
+			<view class="row">
+				<button size="mini" @click="run">重新运行</button>
+			</view>
+
+			<view class="logs">
+				<view class="logs-head">
+					<text class="logs-title">运行日志（console 同步输出 [verify] 前缀日志）</text>
+					<button size="mini" @click="clearLog">清空</button>
+				</view>
+				<text v-for="(line, index) in logs" :key="index" class="log">{{ line }}</text>
+			</view>
+		</view>
+	</scroll-view>
+</template>
+
+<script setup lang="uts">
+	import type { Ref } from 'vue'
+	import { ref } from 'vue'
+	import { defineStore, storeToRefs, patch, dispose, getStoreId } from '@/uni_modules/ux-pinia'
+	import { useCounterStore } from '@/stores/counter.uts'
+	import type { CounterStore } from '@/stores/counter.uts'
+	import { mark, markEq } from '@/common/test-utils.uts'
+
+	const counterStore = useCounterStore()
+	const { count } = storeToRefs(counterStore)
+
+	const logs = ref<Array<string>>([])
+
+	function log(msg: string): void {
+		const line = '[verify] ' + msg
+		logs.value.unshift(line)
+		if (logs.value.length > 200) {
+			logs.value.splice(200, logs.value.length - 200)
+		}
+		console.log(line)
+	}
+
+	function clearLog(): void {
+		logs.value.splice(0, logs.value.length)
+	}
+
+	// I1 专用测试 store：dispose 用例独立化，不污染 counter 的注册表实例
+	type DisposeTestStore = {
+		value: Ref<number>,
+		setValue: (n: number) => void
+	}
+	const useDisposeTestStore = defineStore<DisposeTestStore>('dispose-test', (): DisposeTestStore => {
+		const value: Ref<number> = ref(0)
+		const setValue = (n: number): void => {
+			value.value = n
+		}
+		return { value, setValue } as DisposeTestStore
+	})
+
+	/** I1 实例 API */
+	function run(): void {
+		// I1-1 patch：批量修改（mutator）
+		patch(counterStore, (s: CounterStore): void => {
+			s.count.value = 66
+		})
+		log(markEq('I1-1 patch 批量修改 count', counterStore.count.value, 66))
+
+		// I1-2 getStoreId：反查 id
+		log(mark('I1-2 getStoreId 反查', getStoreId(counterStore) == 'counter', "id='" + getStoreId(counterStore) + "'"))
+
+		// I1-3 dispose 后重建（独立 store）
+		const oldDs = useDisposeTestStore()
+		oldDs.setValue(7)
+		dispose(oldDs)
+		const newDs = useDisposeTestStore()
+		const rebuilt = newDs != oldDs && newDs.value.value == 0
+		log(mark('I1-3 dispose 后重建', rebuilt, "新实例 value=0 id='" + getStoreId(newDs) + "'"))
+		log('说明：dispose 后旧引用成为孤儿实例，仅用于应用级清理场景')
+	}
+
+	onMounted((): void => {
+		run()
+	})
+</script>
+
+<style>
+	.card {
+		flex-direction: column;
+		background-color: #ffffff;
+		border-radius: 16rpx;
+		padding: 24rpx;
+	}
+
+	.card-line {
+		font-size: 28rpx;
+		color: #1a1a1a;
+		margin-bottom: 8rpx;
+	}
+</style>
