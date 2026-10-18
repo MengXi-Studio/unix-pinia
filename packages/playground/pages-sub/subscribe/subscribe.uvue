@@ -57,9 +57,10 @@
 
 	/** U1 状态订阅 */
 	function run(): void {
-		// 重复运行前先释放旧订阅
-		if (stop != null) {
-			stop()
+		// 重复运行前先释放旧订阅（const 中转，避免闭包可变变量的 smart cast 限制）
+		const old = stop
+		if (old != null) {
+			old()
 			stop = null
 		}
 		fired.value = 0
@@ -77,8 +78,11 @@
 			log(markEq('U1-2 修改后回调触发', fired.value, 1))
 
 			// U1-3 stop 取消后不再触发
-			stop!()
-			stop = null
+			const s = stop
+			if (s != null) {
+				s()
+				stop = null
+			}
 			counterStore.increment()
 			setTimeout((): void => {
 				log(markEq('U1-3 stop 后不再触发', fired.value, 1))

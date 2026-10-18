@@ -6,7 +6,8 @@
 	"versionCode": "10",
 	"uni-app-x": {
 		"styleIsolationVersion": "2",
-		"vapor": false
+		"vapor": true,
+		"vapor-render-target": "bytecode"
 	},
 	"uniStatistics": {
 		"enable": false

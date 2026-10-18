@@ -39,4 +39,4 @@ import { getActivePinia } from '@/uni_modules/ux-pinia'
 console.log('unix-pinia ready')
 ```
 
-编译通过且控制台输出即安装成功。更完整的验证可使用仓库示例工程 [packages/playground](https://github.com/MengXi-Studio/unix-pinia/tree/master/packages/playground)。
+编译通过且控制台输出即安装成功。更完整的验证可使用仓库示例工程 [packages/playground](https://github.com/MengXi-Studio/unix-pinia/tree/master/packages/playground)：用 HBuilderX 打开并发行，或直接安装 [Android 体验包（云打包产物）](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1792298656822-__UNI__0AA2919_1792298648182.apk)，进入各功能页查看 `[verify]` 结果。

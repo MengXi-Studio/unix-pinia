@@ -56,8 +56,10 @@
 		// S1-2 同 id 重复 defineStore：幂等（控制台同步输出警告）
 		const dupUse = defineStore<CounterStore>('counter', (): CounterStore => {
 			const n: Ref<number> = ref(99)
-			const noop = (): void => {}
-			return { count: n, name: ref('dup'), doubleCount: a.doubleCount, increment: noop, setName: noop, reset: noop } as CounterStore
+			const nName: Ref<string> = ref('dup')
+			const noop0 = (): void => {}
+			const noop1 = (n: string): void => {}
+			return { count: n, name: nName, doubleCount: a.doubleCount, increment: noop0, setName: noop1, reset: noop0 } as CounterStore
 		})
 		const c = dupUse()
 		log(mark('S1-2 同 id 重复 defineStore 幂等', c == a, '返回既有实例（控制台有警告）'))

@@ -121,6 +121,8 @@ setActivePinia(createPinia().use(myPlugin))
 
 仓库自带示例工程 [packages/playground](https://github.com/MengXi-Studio/unix-pinia/tree/master/packages/playground)，进入首页自动运行全部验证用例（响应式矩阵 / 单例跨页面 / patch / 双 store 互调 / 幂等 / dispose 重建），以 `[verify]` 前缀输出日志并在页面直接显示 pass/fail。示例工程为纯 HBuilderX 工程，用 HBuilderX 打开 `packages/playground` 即可发行 Web / Android，复验同一组用例。
 
+**Android 体验包（云打包产物）**：[下载 APK](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1792298656822-__UNI__0AA2919_1792298648182.apk)（vdom 模式，安装后进入各功能页查看 `[verify]` 结果）
+
 **双端实测结论**：Web 与 Android 真机（Kotlin 编译链）全部用例通过，双端行为一致；iOS / 鸿蒙代码全端同构，待实测。
 
 ## 交流与支持

@@ -9,7 +9,7 @@
 			<text class="section">用例</text>
 			<view class="row">
 				<button class="row-btn" size="mini" @click="run">重新运行</button>
-				<button class="row-btn" size="mini" @click="num.value = num.value + 1">num+1（观察 watch）</button>
+				<button class="row-btn" size="mini" @click="incNum">num+1（观察 watch）</button>
 			</view>
 
 			<view class="logs">
@@ -59,6 +59,10 @@
 		plain: 'plain-value'
 	}
 	const wrapped = reactive(raw)
+
+	const incNum = (): void => {
+		num.value++
+	}
 
 	let watchFired = 0
 

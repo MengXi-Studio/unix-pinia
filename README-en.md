@@ -59,18 +59,18 @@ import type { Ref, ComputedRef } from 'vue'
 import { defineStore } from '@/uni_modules/ux-pinia'
 
 export type CounterStore = {
-	count: Ref<number>,                   // state: Ref
-	doubleCount: ComputedRef<number>,     // getter: ComputedRef
-	increment: () => void,                // action: arrow function (UTS forbids passing function declarations as values)
-	reset: () => void                     // replacement for $reset: custom reset action
+  count: Ref<number>,                   // state: Ref
+  doubleCount: ComputedRef<number>,     // getter: ComputedRef
+  increment: () => void,                // action: arrow function (UTS forbids passing function declarations as values)
+  reset: () => void                     // replacement for $reset: custom reset action
 }
 
 export const useCounterStore = defineStore<CounterStore>('counter', (): CounterStore => {
-	const count: Ref<number> = ref(0)
-	const doubleCount: ComputedRef<number> = computed((): number => count.value * 2)
-	const increment = (): void => { count.value++ }
-	const reset = (): void => { count.value = 0 }
-	return { count, doubleCount, increment, reset } as CounterStore
+  const count: Ref<number> = ref(0)
+  const doubleCount: ComputedRef<number> = computed((): number => count.value * 2)
+  const increment = (): void => { count.value++ }
+  const reset = (): void => { count.value = 0 }
+  return { count, doubleCount, increment, reset } as CounterStore
 })
 ```
 
@@ -106,10 +106,10 @@ dispose(store)                         // ≙ store.$dispose(): next useStore re
 ```uts
 // Cross-store dependency: call the other useStore inside setup
 export const useUserStore = defineStore<UserStore>('user', (): UserStore => {
-	const counterStore = useCounterStore()
-	const score: Ref<number> = ref(0)
-	const addScoreFromCount = (): void => { score.value += counterStore.count.value }
-	return { score, addScoreFromCount } as UserStore
+  const counterStore = useCounterStore()
+  const score: Ref<number> = ref(0)
+  const addScoreFromCount = (): void => { score.value += counterStore.count.value }
+  return { score, addScoreFromCount } as UserStore
 })
 
 // Plugins (optional; register at top level of main.uts — P8 finding: app.use is unreliable on native,
@@ -121,6 +121,8 @@ setActivePinia(createPinia().use(myPlugin))
 ### Verification
 
 The repo ships a demo app at [packages/playground](https://github.com/MengXi-Studio/unix-pinia/tree/master/packages/playground). Its home page auto-runs the full suite (reactivity matrix / cross-page singleton / patch / dual-store calls / idempotency / dispose-rebuild), logs with a `[verify]` prefix and renders pass/fail on the page. It is a plain HBuilderX project — open `packages/playground` in HBuilderX to release Web / Android and re-run the same suite.
+
+**Android demo APK (cloud build)**: [Download APK](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1792298656822-__UNI__0AA2919_1792298648182.apk) (vdom mode; open each feature page to see the `[verify]` results)
 
 **Verified on both platforms**: all cases pass on Web and on an Android real device (Kotlin toolchain) with identical behavior; iOS / HarmonyOS share the same codebase, pending on-device testing.
 
