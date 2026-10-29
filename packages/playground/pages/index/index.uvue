@@ -72,6 +72,13 @@
 					</view>
 					<text class="cell-arrow">›</text>
 				</RouterLink>
+				<RouterLink to="pages-sub/persist/persist" class="cell">
+					<view class="cell-main">
+						<text class="cell-title">持久化插件</text>
+						<text class="cell-desc">persistRef 声明即持久化，watch 自动落盘，后端可替换</text>
+					</view>
+					<text class="cell-arrow">›</text>
+				</RouterLink>
 			</view>
 		</view>
 	</scroll-view>

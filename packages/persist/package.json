@@ -1,0 +1,39 @@
+{
+	"name": "@meng-xi/unix-pinia-persist",
+	"type": "module",
+	"version": "0.1.0",
+	"private": false,
+	"description": "unix-pinia 持久化插件（生态示范）：每字段一行约定 + 自动落盘，存储后端可替换",
+	"keywords": [
+		"@meng-xi/unix-pinia-persist",
+		"meng-xi",
+		"unix-pinia",
+		"pinia",
+		"persist",
+		"storage"
+	],
+	"main": "utssdk/index.uts",
+	"module": "utssdk/index.uts",
+	"types": "utssdk/index.uts",
+	"exports": {
+		".": "./utssdk/index.uts"
+	},
+	"files": [
+		"utssdk",
+		"README.md",
+		"license.md"
+	],
+	"scripts": {},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/MengXi-Studio/unix-pinia"
+	},
+	"homepage": "https://mengxi-studio.github.io/unix-pinia/",
+	"bugs": {
+		"url": "https://github.com/MengXi-Studio/unix-pinia/issues"
+	},
+	"peerDependencies": {
+		"@meng-xi/unix-pinia": "workspace:*"
+	},
+	"license": "MIT"
+}

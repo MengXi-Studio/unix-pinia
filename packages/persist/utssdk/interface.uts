@@ -1,0 +1,27 @@
+/**
+ * unix-pinia-persist 对外类型声明（interface.uts，官方必需，对齐 unix-pinia core 架构）
+ *
+ * 「声明和实现」分层：本文件内联声明全部对外类型；对外 API 在入口 index.uts 内联声明。
+ */
+
+/** Ref 类型（vue 全局注入，类型文件内显式导入以保编辑器与 Kotlin 链一致） */
+import type { Ref } from 'vue'
+
+/** 持久化字段注册项（注册表 value，持有 Ref 引用而非字段名——绕开 UTS 无反射的墙） */
+export type PersistEntry = {
+	/** 存储子键（完整键 = 前缀 + storeId + '.' + key） */
+	key: string
+	/** state 字段的 Ref 引用（any：插件以注册表为桥梁读写，无需知道 store 具体类型） */
+	source: Ref<any>
+}
+
+/**
+ * 存储适配器：让使用者自选持久化后端（unix-storage / uni storage / 原生 preferences）。
+ * 默认实现基于 uni.getStorageSync / uni.setStorageSync（零依赖）。
+ */
+export type StorageAdapter = {
+	/** 读取原始字符串；未命中返回 null */
+	get: (key: string) => string | null
+	/** 写入原始字符串 */
+	set: (key: string, value: string) => void
+}

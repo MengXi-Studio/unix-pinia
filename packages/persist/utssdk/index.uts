@@ -1,0 +1,59 @@
+/**
+ * unix-pinia-persist 插件跨平台根入口（uni_modules UTS 插件）
+ *
+ * 为 unix-pinia 提供持久化插件的生态示范：使用者自选存储后端，
+ * store 侧每字段一行约定（persistRef），插件侧自动落盘（persistPlugin）。
+ *
+ * 红线（对齐 unix-pinia core）：
+ * 1. 对外 API 一律本入口内联声明（export function 具名实现转发 Impl），禁止 re-export 转发链
+ * 2. 实现函数一律 Impl 后缀，避免同名 top-level 符号触发 Kotlin 导出符号静默重整
+ * 3. 对外类型集中于 interface.uts，入口经 export type 转发；
+ *    插件契约类型（PiniaPlugin / PiniaPluginContext）从 ux-pinia 跨插件导入
+ */
+import type { Ref } from 'vue'
+import type { PiniaPlugin, PiniaPluginContext } from '@/uni_modules/ux-pinia'
+import type { StorageAdapter } from './interface.uts'
+import { persistPluginImpl } from './persist/plugin.uts'
+import { loadValue, saveValue, trackRef } from './persist/registry.uts'
+
+export type { PersistEntry, StorageAdapter } from './interface.uts'
+
+/**
+ * 持久化 state 字段（store setup 内使用）：
+ * 从存储读取历史值作为 ref 初始值（启动恢复），并登记引用供插件建立自动落盘。
+ * 未命中 / 存储损坏回退 defaultValue。
+ *
+ * @param storeId 所属 store 的 id（与 defineStore 的 id 一致）
+ * @param key 字段存储键（完整键 = 前缀 + storeId + '.' + key）
+ * @param defaultValue 默认值
+ * @returns 初始值已恢复的 Ref；未挂接 persistPlugin 时仅恢复生效、自动落盘失效
+ */
+export function persistRef<T>(storeId: string, key: string, defaultValue: T): Ref<T> {
+	const initial: T | null = loadValue<T>(storeId, key)
+	const restored: T = initial != null ? initial : defaultValue
+	// ref(restored) 推断为 Ref<UnwrapRef<T>>，按签名收窄为 Ref<T>
+	return trackRef<T>(storeId, key, ref(restored) as Ref<T>)
+}
+
+/**
+ * 持久化插件（main.uts 顶层登记：setActivePinia(createPinia().use(persistPlugin))）：
+ * store 首次创建时为全部已登记字段建立字段级 watch，变化自动落盘。
+ */
+export const persistPlugin: PiniaPlugin = (ctx: PiniaPluginContext): void => {
+	persistPluginImpl(ctx)
+}
+
+/**
+ * 替换存储后端（可选）。默认基于 uni.getStorageSync / uni.setStorageSync；
+ * 换 unix-storage / 原生 preferences 时实现 StorageAdapter 并在创建任何 store 前调用。
+ */
+export function setStorageAdapter(next: StorageAdapter): void {
+	setStorageAdapterImpl(next)
+}
+
+/**
+ * 手动立即落盘单个字段（可选）：自动落盘之外需要显式保存点时使用
+ */
+export function persistNow<T>(storeId: string, key: string, value: T): void {
+	saveValue<T>(storeId, key, value)
+}

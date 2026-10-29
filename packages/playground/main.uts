@@ -1,13 +1,14 @@
 import { createSSRApp } from 'vue'
 import App from './App.uvue'
 import { createPinia, setActivePinia } from '@/uni_modules/ux-pinia'
+import { persistPlugin } from '@/uni_modules/ux-pinia-persist'
 
 export function createApp() {
   const app = createSSRApp(App)
   // P8 裁决：原生端 app.use(Pinia实例) 不触发 install（双端不一致）→ 统一免挂载模式。
-  // 需要插件（pinia.use）时，在顶层显式：setActivePinia(createPinia().use(plugin))
-  // 免挂载时首次 useStore 会惰性创建默认 Pinia 实例，纯状态管理无需本文件任何 pinia 代码。
-  setActivePinia(createPinia())
+  // 插件场景的标准写法：顶层登记实例并链式注册插件（persistPlugin：持久化自动落盘）。
+  // 纯状态管理时本文件可留空（首次 useStore 惰性创建默认 Pinia 实例）。
+  setActivePinia(createPinia().use(persistPlugin))
   return {
     app
   }

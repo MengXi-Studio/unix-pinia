@@ -1,0 +1,112 @@
+<template>
+	<scroll-view style="flex:1">
+		<view class="container">
+			<view class="intro">
+				<text class="intro-title">功能说明</text>
+				<text class="intro-text">unix-pinia-persist 生态示范：persistRef 声明即持久化（创建时从存储恢复初始值），persistPlugin 挂接字段级 watch 自动落盘；tempValue 为普通内存字段（对照项）。修改后直接读存储验证落盘；杀进程重进可验证恢复。进入页面自动运行。</text>
+			</view>
+
+			<view class="card">
+				<text class="card-line">pvCount（持久化）: {{ pvCount }}</text>
+				<text class="card-line">pvName（持久化）: {{ pvName }}</text>
+				<text class="card-line">tempValue（内存对照）: {{ tempValue }}</text>
+			</view>
+
+			<text class="section">用例</text>
+			<view class="row">
+				<button class="row-btn" size="mini" @click="run">运行（修改→读存储验证落盘）</button>
+				<button class="row-btn" size="mini" @click="pStore.add">pvCount+1</button>
+				<button class="row-btn" size="mini" @click="onClear">重置为默认</button>
+			</view>
+
+			<view class="logs">
+				<view class="logs-head">
+					<text class="logs-title">运行日志（console 同步输出 [verify] 前缀日志）</text>
+					<button class="row-btn" size="mini" @click="clearLog">清空</button>
+				</view>
+				<text v-for="(line, index) in logs" :key="index" class="log">{{ line }}</text>
+			</view>
+		</view>
+	</scroll-view>
+</template>
+
+<script setup lang="uts">
+	// 页面声明宏：编译期由 ux-router vite 插件剥离，驱动 pages.json 与路由表生成
+	defineUniPage({
+		title: '持久化插件',
+		name: 'persist'
+	})
+	import { ref } from 'vue'
+	import { storeToRefs } from '@/uni_modules/ux-pinia'
+	import { usePersistedStore } from '@/stores/persisted.uts'
+	import { mark, markEq } from '@/common/test-utils.uts'
+
+	const pStore = usePersistedStore()
+	const { pvCount, pvName, tempValue } = storeToRefs(pStore)
+
+	const logs = ref<Array<string>>([])
+
+	function log(msg: string): void {
+		const line = '[verify] ' + msg
+		logs.value.unshift(line)
+		if (logs.value.length > 200) {
+			logs.value.splice(200, logs.value.length - 200)
+		}
+		console.log(line)
+	}
+
+	function clearLog(): void {
+		logs.value.splice(0, logs.value.length)
+	}
+
+	/** 读存储原始值（直读 uni storage，验证插件落盘的真实性） */
+	function readRaw(key: string): string {
+		const raw = uni.getStorageSync('ux-pinia-persist:persist-demo.' + key)
+		if (raw == null || raw == '') {
+			return '<未落盘>'
+		}
+		return raw as string
+	}
+
+	/** PS1 持久化验证 */
+	function run(): void {
+		// PS1-1 修改持久化字段（action），watch 应自动落盘
+		pStore.setName('persisted-' + pvCount.value.toString())
+		pStore.add()
+		setTimeout((): void => {
+			const rawCount = readRaw('count')
+			const rawName = readRaw('name')
+			// 落盘内容为 JSON 信封 {"v":...}，包含新值即落盘成功
+			log('PS1-1 pvCount 落盘原始值: ' + rawCount)
+			log('PS1-2 pvName 落盘原始值: ' + rawName)
+			log(mark('PS1-3 自动落盘验证（存储中含新值）', rawCount.indexOf('"v":' + pvCount.value.toString()) >= 0 && rawName.indexOf(pStore.pvName.value) >= 0, 'watch 触发直写存储'))
+			// PS1-4 对照项：内存字段不落盘
+			pStore.setTemp('changed-in-memory')
+			setTimeout((): void => {
+				log(mark('PS1-4 内存字段不落盘（对照）', readRaw('temp') == '<未落盘>', 'tempValue 未写入存储'))
+				// PS1-5 启动恢复说明：本进程 persistRef 已用存储值初始化；杀进程重进后本页将显示存储中的值
+				log('PS1-5 启动恢复：杀进程重新进入本页，pvCount/pvName 应显示存储值，tempValue 回默认（对照）')
+			}, 200)
+		}, 200)
+	}
+
+	const onClear = (): void => {
+		pStore.reset()
+		log('已重置为默认值（watch 自动落盘默认值；杀进程重进后为默认状态）')
+	}
+</script>
+
+<style>
+	.card {
+		flex-direction: column;
+		background-color: #ffffff;
+		border-radius: 16rpx;
+		padding: 24rpx;
+	}
+
+	.card-line {
+		font-size: 28rpx;
+		color: #1a1a1a;
+		margin-bottom: 8rpx;
+	}
+</style>

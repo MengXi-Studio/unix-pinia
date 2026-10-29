@@ -1,0 +1,28 @@
+/**
+ * persistPlugin 实现（pinia.use 钩子）
+ *
+ * store 首次创建时按 storeId 取回注册表条目，为每个持久化字段建立
+ * 字段级 watch（P4 双端可用）→ state 变化自动落盘。
+ *
+ * 职责分工：
+ * - persistRef：注册字段引用 + 读存储做启动恢复（ref 初始值）
+ * - persistPlugin：变化自动落盘（未 use 本插件时恢复仍生效，仅落盘失效）
+ */
+import type { PiniaPluginContext } from '@/uni_modules/ux-pinia'
+import { getEntries, saveValue } from './registry.uts'
+
+export function persistPluginImpl(ctx: PiniaPluginContext): void {
+	const entries = getEntries(ctx.storeId)
+	if (entries == null) {
+		return
+	}
+	for (let i = 0; i < entries.length; i++) {
+		const entry = entries[i]
+		// 字段级 watch（整体订阅已裁掉）：Ref 引用从注册表取得，无需反射
+		watch(entry.source, (newVal: any, oldVal: any): void => {
+			saveValue<any>(ctx.storeId, entry.key, newVal)
+			console.log('[persist] ' + ctx.storeId + '.' + entry.key + ' 已落盘：' + JSON.stringify(newVal))
+		})
+	}
+	console.log('[persist] store \'' + ctx.storeId + '\' 已挂接自动落盘（' + entries.length.toString() + ' 个字段）')
+}

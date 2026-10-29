@@ -1,0 +1,42 @@
+import type { Ref } from 'vue'
+import { defineStore } from '@/uni_modules/ux-pinia'
+import { persistRef } from '@/uni_modules/ux-pinia-persist'
+
+/**
+ * persisted store：持久化插件演示（unix-pinia-persist 生态示范）
+ *
+ * - pvCount：持久化字段（persistRef 声明，存储键 'persist-demo.count'，默认 0）
+ * - pvName：持久化字段（存储键 'persist-demo.name'，默认 'pinia'）
+ * - tempValue：普通内存字段（对照项，杀进程后回默认）
+ */
+export type PersistedStore = {
+	pvCount: Ref<number>,
+	pvName: Ref<string>,
+	tempValue: Ref<string>,
+	add: () => void,
+	setName: (n: string) => void,
+	setTemp: (s: string) => void,
+	reset: () => void
+}
+
+export const usePersistedStore = defineStore<PersistedStore>('persist-demo', (): PersistedStore => {
+	// 每字段一行约定：声明即持久化（恢复在 persistRef，落盘在 persistPlugin）
+	const pvCount: Ref<number> = persistRef<number>('persist-demo', 'count', 0)
+	const pvName: Ref<string> = persistRef<string>('persist-demo', 'name', 'pinia')
+	const tempValue: Ref<string> = ref('temp-default')
+	const add = (): void => {
+		pvCount.value++
+	}
+	const setName = (n: string): void => {
+		pvName.value = n
+	}
+	const setTemp = (s: string): void => {
+		tempValue.value = s
+	}
+	const reset = (): void => {
+		pvCount.value = 0
+		pvName.value = 'pinia'
+		tempValue.value = 'temp-default'
+	}
+	return { pvCount: pvCount, pvName: pvName, tempValue: tempValue, add: add, setName: setName, setTemp: setTemp, reset: reset } as PersistedStore
+})
