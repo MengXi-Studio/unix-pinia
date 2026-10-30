@@ -1,0 +1,93 @@
+<template>
+	<!-- 自绘导航骨架：状态栏占位（App 端动态 padding）+ 44px 导航行；文档站模拟器嵌入时隐藏（壳已提供仿真导航） -->
+	<view v-if="!embedded" class="navbar" :style="'padding-top:' + statusBarHeight + 'px'">
+		<view class="navbar-body">
+			<view class="navbar-side" @click="onBack">
+				<text class="navbar-back">‹</text>
+			</view>
+			<view class="navbar-center">
+				<text class="navbar-title">{{ title }}</text>
+				<text v-if="subtitle.length > 0" class="navbar-subtitle">{{ subtitle }}</text>
+			</view>
+			<view class="navbar-side"></view>
+		</view>
+	</view>
+</template>
+
+<script setup lang="uts">
+	import { useRouter } from '@/uni_modules/ux-router/utssdk/index.uts'
+
+	type Props = {
+		/** 中文标题 */
+		title: string
+		/** 英文名副标题（空串不渲染） */
+		subtitle?: string
+	}
+
+	withDefaults(defineProps<Props>(), {
+		subtitle: ''
+	})
+
+	// 状态栏占位高度：Web 端为 0，App 端取真实状态栏高度（统一结构，免条件编译分支模板）
+	const statusBarHeight = ref(0)
+	// #ifdef APP
+	statusBarHeight.value = uni.getWindowInfo().statusBarHeight
+	// #endif
+
+	// 嵌入模式：文档站模拟器 iframe 携带 navbar=0 时隐藏自绘导航（避免与壳导航重复），仅 Web 端消费
+	const embedded = ref(false)
+	// #ifdef WEB
+	embedded.value = typeof location !== 'undefined' && location.search.indexOf('navbar=0') >= 0
+	// #endif
+
+	const router = useRouter()
+
+	/** 返回上一页（统一走 ux-router 导航出口；显式传 delta=1，App 端 Kotlin 可选参数默认值不保证跨版本生效） */
+	const onBack = () => {
+		router.back(1)
+	}
+</script>
+
+<style>
+	/* 应用层骨架组件（非组件库契约范围），不引入主题变量 */
+	.navbar {
+		background-color: #ffffff;
+	}
+
+	.navbar-body {
+		flex-direction: row;
+		align-items: center;
+		height: 44px;
+	}
+
+	.navbar-side {
+		width: 44px;
+		height: 44px;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.navbar-back {
+		font-size: 40rpx;
+		color: #1a1a1a;
+	}
+
+	.navbar-center {
+		flex: 1;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.navbar-title {
+		font-size: 16px;
+		font-weight: bold;
+		color: #1a1a1a;
+	}
+
+	.navbar-subtitle {
+		font-size: 12px;
+		color: #999999;
+		margin-left: 4px;
+	}
+</style>

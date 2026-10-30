@@ -1,0 +1,28 @@
+import { createRouter } from '@/uni_modules/ux-router/utssdk/index.uts'
+import type { RouteLocation } from '@/uni_modules/ux-router/utssdk/index.uts'
+import { routes } from './routes.gen.uts'
+
+/**
+ * 全局路由器实例（main.uts 中通过 app.use(router) 安装）
+ *
+ * 路由表来自 routeGen 自动生成的 routes.gen.uts（由各页面 defineUniPage 宏驱动），
+ * 与 pages.json 同源，无需手工维护。
+ *
+ * strict: true —— 未注册的命名路由直接抛错，保证调用方与路由表的一致性
+ */
+export const router = createRouter({
+	routes: routes,
+	strict: true
+})
+
+/**
+ * 全局后置守卫：导航完成后更新页面标题并输出导航日志
+ *
+ * playground 全部页面为 navigationStyle: custom（自绘导航骨架），
+ * 原生导航栏标题不可见，uni.setNavigationBarTitle 在 Web 端承担
+ * document.title 更新职责；演示页标题由 demo-navbar 骨架渲染。
+ */
+router.afterEach((to: RouteLocation, from: RouteLocation, failure: Error | null): void => {
+	uni.setNavigationBarTitle({ title: to.meta.title ?? '' })
+	console.log('[ux-router] ' + from.fullPath + ' -> ' + to.fullPath + (failure != null ? ' | ' + failure.message : ''))
+})

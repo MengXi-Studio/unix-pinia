@@ -75,6 +75,7 @@
 		}
 	],
 	"globalStyle": {
+		"navigationStyle": "custom",
 		"navigationBarTextStyle": "black",
 		"navigationBarTitleText": "unix-pinia",
 		"navigationBarBackgroundColor": "#F8F8F8",

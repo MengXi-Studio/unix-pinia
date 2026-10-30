@@ -1,9 +1,12 @@
 <template>
-	<scroll-view style="flex:1">
+	<view class="page">
+		<demo-navbar title="状态订阅" subtitle="Subscribe" />
+		<demo-bridge />
+		<scroll-view class="page-body" :scroll-y="true">
 		<view class="container">
-			<view class="intro">
-				<text class="intro-title">功能说明</text>
-				<text class="intro-text">状态订阅使用字段级 watch（整体 $subscribe 已裁掉：deep watch 在 Android 端对 RefImpl 字段不触发，双端实测不一致）。watch 返回 stop 函数，调用后不再触发。进入页面自动运行。</text>
+			<view class="card">
+				<text class="card-title">功能说明</text>
+				<text class="card-desc">状态订阅使用字段级 watch（整体 $subscribe 已裁掉：deep watch 在 Android 端对 RefImpl 字段不触发，双端实测不一致）。watch 返回 stop 函数，调用后不再触发。进入页面自动运行。</text>
 			</view>
 
 			<view class="card">
@@ -25,7 +28,8 @@
 				<text v-for="(line, index) in logs" :key="index" class="log">{{ line }}</text>
 			</view>
 		</view>
-	</scroll-view>
+		</scroll-view>
+	</view>
 </template>
 
 <script setup lang="uts">
@@ -100,17 +104,3 @@
 	})
 </script>
 
-<style>
-	.card {
-		flex-direction: column;
-		background-color: #ffffff;
-		border-radius: 16rpx;
-		padding: 24rpx;
-	}
-
-	.card-line {
-		font-size: 28rpx;
-		color: #1a1a1a;
-		margin-bottom: 8rpx;
-	}
-</style>

@@ -1,9 +1,12 @@
 <template>
-	<scroll-view style="flex:1">
+	<view class="page">
+		<demo-navbar title="跨页面共享（断言）" subtitle="Cross Verify" />
+		<demo-bridge />
+		<scroll-view class="page-body" :scroll-y="true">
 		<view class="container">
-			<view class="intro">
-				<text class="intro-title">跨页面共享 · 断言方</text>
-				<text class="intro-text">本页 useCounterStore() 从注册表取实例：若与写入方为同一实例，count 应等于写入方离开时的值，且 doubleCount = count × 2。进入页面自动断言。</text>
+			<view class="card">
+				<text class="card-title">跨页面共享 · 断言方</text>
+				<text class="card-desc">本页 useCounterStore() 从注册表取实例：若与写入方为同一实例，count 应等于写入方离开时的值，且 doubleCount = count × 2。进入页面自动断言。</text>
 			</view>
 
 			<view class="card">
@@ -17,7 +20,8 @@
 				<button class="row-btn" size="mini" @click="onBack">返回写入方</button>
 			</view>
 		</view>
-	</scroll-view>
+		</scroll-view>
+	</view>
 </template>
 
 <script setup lang="uts">
@@ -60,18 +64,3 @@
 	})
 </script>
 
-<style>
-	.card {
-		flex-direction: column;
-		background-color: #ffffff;
-		border-radius: 16rpx;
-		padding: 24rpx;
-		margin-bottom: 24rpx;
-	}
-
-	.card-line {
-		font-size: 28rpx;
-		color: #1a1a1a;
-		margin-bottom: 8rpx;
-	}
-</style>

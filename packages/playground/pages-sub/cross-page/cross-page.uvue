@@ -1,9 +1,12 @@
 <template>
-	<scroll-view style="flex:1">
+	<view class="page">
+		<demo-navbar title="跨页面共享（写入）" subtitle="Cross Page" />
+		<demo-bridge />
+		<scroll-view class="page-body" :scroll-y="true">
 		<view class="container">
-			<view class="intro">
-				<text class="intro-title">跨页面共享 · 写入方</text>
-				<text class="intro-text">本页修改 counter 后跳转断言页：断言页 useStore 拿到的是注册表中的同一实例，count 应与离开本页时一致。返回后本页视图随断言页的修改联动。</text>
+			<view class="card">
+				<text class="card-title">跨页面共享 · 写入方</text>
+				<text class="card-desc">本页修改 counter 后跳转断言页：断言页 useStore 拿到的是注册表中的同一实例，count 应与离开本页时一致。返回后本页视图随断言页的修改联动。</text>
 			</view>
 
 			<view class="card">
@@ -20,7 +23,8 @@
 				<button class="row-btn" size="mini" @click="goVerify">跳转断言页（先 increment 再比对）</button>
 			</view>
 		</view>
-	</scroll-view>
+		</scroll-view>
+	</view>
 </template>
 
 <script setup lang="uts">
@@ -45,18 +49,3 @@
 	}
 </script>
 
-<style>
-	.card {
-		flex-direction: column;
-		background-color: #ffffff;
-		border-radius: 16rpx;
-		padding: 24rpx;
-		margin-bottom: 24rpx;
-	}
-
-	.card-line {
-		font-size: 28rpx;
-		color: #1a1a1a;
-		margin-bottom: 8rpx;
-	}
-</style>

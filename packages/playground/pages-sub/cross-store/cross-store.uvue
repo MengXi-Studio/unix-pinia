@@ -1,9 +1,12 @@
 <template>
-	<scroll-view style="flex:1">
+	<view class="page">
+		<demo-navbar title="跨 store 依赖" subtitle="Cross Store" />
+		<demo-bridge />
+		<scroll-view class="page-body" :scroll-y="true">
 		<view class="container">
-			<view class="intro">
-				<text class="intro-title">功能说明</text>
-				<text class="intro-text">setup 内直接调用对方 useStore 即可组合 store（注册表保证单例）；推荐在 action 内跨 store 修改，getter 内避免跨 store 循环依赖。进入页面自动运行。</text>
+			<view class="card">
+				<text class="card-title">功能说明</text>
+				<text class="card-desc">setup 内直接调用对方 useStore 即可组合 store（注册表保证单例）；推荐在 action 内跨 store 修改，getter 内避免跨 store 循环依赖。进入页面自动运行。</text>
 			</view>
 
 			<view class="card">
@@ -25,7 +28,8 @@
 				<text v-for="(line, index) in logs" :key="index" class="log">{{ line }}</text>
 			</view>
 		</view>
-	</scroll-view>
+		</scroll-view>
+	</view>
 </template>
 
 <script setup lang="uts">
@@ -83,17 +87,3 @@
 	})
 </script>
 
-<style>
-	.card {
-		flex-direction: column;
-		background-color: #ffffff;
-		border-radius: 16rpx;
-		padding: 24rpx;
-	}
-
-	.card-line {
-		font-size: 28rpx;
-		color: #1a1a1a;
-		margin-bottom: 8rpx;
-	}
-</style>

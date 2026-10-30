@@ -1,9 +1,12 @@
 <template>
-	<scroll-view style="flex:1">
+	<view class="page">
+		<demo-navbar title="基础用法" subtitle="Basic" />
+		<demo-bridge />
+		<scroll-view class="page-body" :scroll-y="true">
 		<view class="container">
-			<view class="intro">
-				<text class="intro-title">功能说明</text>
-				<text class="intro-text">setup 式 defineStore：state 用 Ref、getter 用 ComputedRef、action 用箭头函数。脚本访问 state 需 .value（UTS 无 Proxy 不自动解包），模板经 storeToRefs 解构后自动解包。进入页面自动运行。</text>
+			<view class="card">
+				<text class="card-title">功能说明</text>
+				<text class="card-desc">setup 式 defineStore：state 用 Ref、getter 用 ComputedRef、action 用箭头函数。脚本访问 state 需 .value（UTS 无 Proxy 不自动解包），模板经 storeToRefs 解构后自动解包。进入页面自动运行。</text>
 			</view>
 
 			<view class="card">
@@ -27,10 +30,13 @@
 				<text v-for="(line, index) in logs" :key="index" class="log">{{ line }}</text>
 			</view>
 		</view>
-	</scroll-view>
+		</scroll-view>
+	</view>
 </template>
 
 <script setup lang="uts">
+	import DemoNavbar from '@/components/demo-navbar/demo-navbar.uvue'
+	import DemoBridge from '@/components/demo-bridge/demo-bridge.uvue'
 	// 页面声明宏：编译期由 ux-router vite 插件剥离，驱动 pages.json 与路由表生成
 	defineUniPage({
 		title: '基础用法',
@@ -78,17 +84,3 @@
 	})
 </script>
 
-<style>
-	.card {
-		flex-direction: column;
-		background-color: #ffffff;
-		border-radius: 16rpx;
-		padding: 24rpx;
-	}
-
-	.card-line {
-		font-size: 28rpx;
-		color: #1a1a1a;
-		margin-bottom: 8rpx;
-	}
-</style>

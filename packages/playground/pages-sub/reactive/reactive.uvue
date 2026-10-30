@@ -1,9 +1,12 @@
 <template>
-	<scroll-view style="flex:1">
+	<view class="page">
+		<demo-navbar title="响应式矩阵" subtitle="Reactive" />
+		<demo-bridge />
+		<scroll-view class="page-body" :scroll-y="true">
 		<view class="container">
-			<view class="intro">
-				<text class="intro-title">功能说明</text>
-				<text class="intro-text">实测 reactive 对 Ref / ComputedRef 字段的行为：Web 端（JS Proxy）自动解包，Android 端（Kotlin 无 Proxy）保持 RefImpl 原样——unix-pinia 据此采用透传形态（方案 B），不依赖 reactive 解包。isRef 的返回即双端差异的直接证据，两种结果均为预期。进入页面自动运行。</text>
+			<view class="card">
+				<text class="card-title">功能说明</text>
+				<text class="card-desc">实测 reactive 对 Ref / ComputedRef 字段的行为：Web 端（JS Proxy）自动解包，Android 端（Kotlin 无 Proxy）保持 RefImpl 原样——unix-pinia 据此采用透传形态（方案 B），不依赖 reactive 解包。isRef 的返回即双端差异的直接证据，两种结果均为预期。进入页面自动运行。</text>
 			</view>
 
 			<text class="section">用例</text>
@@ -20,7 +23,8 @@
 				<text v-for="(line, index) in logs" :key="index" class="log">{{ line }}</text>
 			</view>
 		</view>
-	</scroll-view>
+		</scroll-view>
+	</view>
 </template>
 
 <script setup lang="uts">

@@ -1,9 +1,12 @@
 <template>
-	<scroll-view style="flex:1">
+	<view class="page">
+		<demo-navbar title="单例与幂等" subtitle="Singleton" />
+		<demo-bridge />
+		<scroll-view class="page-body" :scroll-y="true">
 		<view class="container">
-			<view class="intro">
-				<text class="intro-title">功能说明</text>
-				<text class="intro-text">模块级注册表保证单例：同 id 多次 useStore 返回同一实例（跨页面共享的基础）；同 id 重复 defineStore 警告并保持幂等；不同 id 各自独立。进入页面自动运行。</text>
+			<view class="card">
+				<text class="card-title">功能说明</text>
+				<text class="card-desc">模块级注册表保证单例：同 id 多次 useStore 返回同一实例（跨页面共享的基础）；同 id 重复 defineStore 警告并保持幂等；不同 id 各自独立。进入页面自动运行。</text>
 			</view>
 
 			<text class="section">用例</text>
@@ -19,7 +22,8 @@
 				<text v-for="(line, index) in logs" :key="index" class="log">{{ line }}</text>
 			</view>
 		</view>
-	</scroll-view>
+		</scroll-view>
+	</view>
 </template>
 
 <script setup lang="uts">

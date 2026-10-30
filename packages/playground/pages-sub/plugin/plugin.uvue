@@ -1,9 +1,12 @@
 <template>
-	<scroll-view style="flex:1">
+	<view class="page">
+		<demo-navbar title="插件与 Pinia 实例" subtitle="Plugin" />
+		<demo-bridge />
+		<scroll-view class="page-body" :scroll-y="true">
 		<view class="container">
-			<view class="intro">
-				<text class="intro-title">功能说明</text>
-				<text class="intro-text">createPinia 创建实例，setActivePinia 登记（main.uts 已顶层执行）；pinia.use 链式注册插件，store 首次创建时按序调度，PiniaPluginContext 携带 pinia / store / storeId。进入页面自动运行。</text>
+			<view class="card">
+				<text class="card-title">功能说明</text>
+				<text class="card-desc">createPinia 创建实例，setActivePinia 登记（main.uts 已顶层执行）；pinia.use 链式注册插件，store 首次创建时按序调度，PiniaPluginContext 携带 pinia / store / storeId。进入页面自动运行。</text>
 			</view>
 
 			<text class="section">用例</text>
@@ -19,7 +22,8 @@
 				<text v-for="(line, index) in logs" :key="index" class="log">{{ line }}</text>
 			</view>
 		</view>
-	</scroll-view>
+		</scroll-view>
+	</view>
 </template>
 
 <script setup lang="uts">
