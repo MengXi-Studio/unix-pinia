@@ -1,18 +1,18 @@
 /**
- * 同步各 UTS 插件包到 playground（多包映射）
+ * 同步各 UTS 插件包到 playground / 其他 uni-app x 工程（多包映射）
  *
  * 用法：
  *   node scripts/sync-uni-modules.mjs           # 复制（增量覆盖）
  *   node scripts/sync-uni-modules.mjs --check   # 仅校验一致性（CI / precommit）
  *
- * 原理：packages/* 各包本身就是标准 uni_modules 插件目录（utssdk/ 结构），
+ * 原理：packages/* 各包本身就是标准 uni_modules UTS 插件目录（utssdk/ 结构），
  * 复制为 playground/uni_modules/<id>；HBuilderX 编译只扫描工程 uni_modules/
  * 目录，node_modules 内的 UTS 插件不被识别。
  *
  * 注意：插件目录名必须为 uni_modules id（npm 包名 @meng-xi/unix-pinia →
- * ux-pinia、@meng-xi/unix-pinia-persist → ux-pinia-persist），因此各
- * dest/package.json 为 playground 侧手工维护（id 与 npm 包名不同），同步时
- * 保留、不参与复制与校验。
+ * ux-pinia、@meng-xi/unix-pinia-persist → ux-pinia-persist）；
+ * dest 侧 package.json、changelog.md、README.md 为 playground 侧手工维护
+ * （DCloud 插件市场要求的 id 与格式同 npm 包不同），同步时保留、不参与复制与校验。
  */
 import { cpSync, existsSync, rmSync, readdirSync, statSync, readFileSync } from 'node:fs'
 import { join, dirname, resolve } from 'node:path'
@@ -27,13 +27,16 @@ const targets = [
 	{ src: 'packages/persist', dest: 'packages/playground/uni_modules/ux-pinia-persist', label: 'ux-pinia-persist' }
 ]
 
-/** 插件目录只需要这些内容（core 侧 README-en.md 面向 npm 仓库浏览场景，playground 不需要） */
-const INCLUDE = ['utssdk', 'README.md', 'license.md']
+/** 插件目录同步这些内容（UTS 插件源码 + 开源协议文件）；
+ *  README 不同步：npm 包侧文件（GitHub 徽章 / 外链图片）与 DCloud 插件市场
+ *  要求的格式不一致，插件侧单独生成维护（见 KEEP） */
+const INCLUDE = ['utssdk', 'license.md']
 
 /** 同步时需在目标目录保留的手工维护文件（不复制、不删除、校验豁免）：
  *  - package.json：HBuilderX 插件发布要求 id 为 ux-*，与 npm 包元数据不同
- *  - changelog.md：包侧无此文件，仅 playground 侧维护 */
-const KEEP = ['package.json', 'changelog.md']
+ *  - changelog.md：包侧无此文件，仅 playground 侧维护
+ *  - README.md：插件市场格式与 npm 包不同，插件侧单独生成维护 */
+const KEEP = ['package.json', 'changelog.md', 'README.md']
 
 /** 列出目录下全部相对文件；filterTop 为 true 时仅统计 INCLUDE 白名单内的顶层条目（与复制 filter 语义一致） */
 function listFiles(dir, filterTop = false) {
@@ -98,7 +101,7 @@ for (const t of targets) {
 			return INCLUDE.includes(rel.split(/[\\/]/)[0])
 		}
 	})
-	console.log(`[sync] 已同步 ${t.src} → packages/playground/uni_modules/${t.label}（package.json 保留手工版本）`)
+	console.log(`[sync] 已同步 ${t.src} → packages/playground/uni_modules/${t.label}（手工维护文件已保留）`)
 }
 
 if (check && failed) process.exit(1)

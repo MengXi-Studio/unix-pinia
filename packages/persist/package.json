@@ -3,7 +3,7 @@
 	"type": "module",
 	"version": "0.1.0",
 	"private": false,
-	"description": "unix-pinia 持久化插件（生态示范）：每字段一行约定 + 自动落盘，存储后端可替换",
+	"description": "unix-pinia 持久化插件：每字段一行约定 + 自动落盘，存储后端可替换",
 	"keywords": [
 		"@meng-xi/unix-pinia-persist",
 		"meng-xi",
@@ -20,8 +20,9 @@
 	},
 	"files": [
 		"utssdk",
+		"LICENSE",
 		"README.md",
-		"license.md"
+		"README-en.md"
 	],
 	"scripts": {},
 	"repository": {
