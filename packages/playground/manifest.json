@@ -7,7 +7,8 @@
 	"uni-app-x": {
 		"styleIsolationVersion": "2",
 		"vapor": true,
-		"vapor-render-target": "bytecode"
+		"vapor-render-target": "bytecode",
+		"vapor-default-script-lang": "uts"
 	},
 	"uniStatistics": {
 		"enable": false

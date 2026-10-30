@@ -8,6 +8,7 @@
  * - persistRef：注册字段引用 + 读存储做启动恢复（ref 初始值）
  * - persistPlugin：变化自动落盘（未 use 本插件时恢复仍生效，仅落盘失效）
  */
+import { watch } from 'vue'
 import type { PiniaPluginContext } from '@/uni_modules/ux-pinia'
 import { getEntries, saveValue } from './registry.uts'
 
@@ -20,7 +21,7 @@ export function persistPluginImpl(ctx: PiniaPluginContext): void {
 		const entry = entries[i]
 		// 字段级 watch（整体订阅已裁掉）：Ref 引用从注册表取得，无需反射
 		watch(entry.source, (newVal: any, oldVal: any): void => {
-			saveValue<any>(ctx.storeId, entry.key, newVal)
+			saveValue(ctx.storeId, entry.key, newVal)
 			console.log('[persist] ' + ctx.storeId + '.' + entry.key + ' 已落盘：' + JSON.stringify(newVal))
 		})
 	}

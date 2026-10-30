@@ -9,12 +9,14 @@
  * 2. 实现函数一律 Impl 后缀，避免同名 top-level 符号触发 Kotlin 导出符号静默重整
  * 3. 对外类型集中于 interface.uts，入口经 export type 转发；
  *    插件契约类型（PiniaPlugin / PiniaPluginContext）从 ux-pinia 跨插件导入
+ * 4. 入口 import 必须列全实现符号（Web 端 JS 动态解析不报错，云打包 Kotlin 静态编译报 Unresolved）
  */
+import { ref } from 'vue'
 import type { Ref } from 'vue'
 import type { PiniaPlugin, PiniaPluginContext } from '@/uni_modules/ux-pinia'
 import type { StorageAdapter } from './interface.uts'
 import { persistPluginImpl } from './persist/plugin.uts'
-import { loadValue, saveValue, trackRef } from './persist/registry.uts'
+import { loadValue, saveValue, setStorageAdapterImpl, trackRef } from './persist/registry.uts'
 
 export type { PersistEntry, StorageAdapter } from './interface.uts'
 
@@ -29,10 +31,14 @@ export type { PersistEntry, StorageAdapter } from './interface.uts'
  * @returns 初始值已恢复的 Ref；未挂接 persistPlugin 时仅恢复生效、自动落盘失效
  */
 export function persistRef<T>(storeId: string, key: string, defaultValue: T): Ref<T> {
-	const initial: T | null = loadValue<T>(storeId, key)
-	const restored: T = initial != null ? initial : defaultValue
-	// ref(restored) 推断为 Ref<UnwrapRef<T>>，按签名收窄为 Ref<T>
-	return trackRef<T>(storeId, key, ref(restored) as Ref<T>)
+	const initial: any | null = loadValue(storeId, key)
+	const restored: T = initial != null ? (initial as T) : defaultValue
+	const r: Ref<T> = ref(restored) as Ref<T>
+	// Kotlin 泛型擦除边界（两步转换）：单步 `r as any` 会把 Ref 擦成裸 Any 传给 Ref<Any> 参数报错；
+	// 先擦 any 抹掉 T，再显式转回 Ref<any>（unchecked cast，与 core 的 Map<string,any> 同源处理）
+	const tracked: any = r as any
+	trackRef(storeId, key, tracked as Ref<any>)
+	return r
 }
 
 /**
@@ -55,5 +61,5 @@ export function setStorageAdapter(next: StorageAdapter): void {
  * 手动立即落盘单个字段（可选）：自动落盘之外需要显式保存点时使用
  */
 export function persistNow<T>(storeId: string, key: string, value: T): void {
-	saveValue<T>(storeId, key, value)
+	saveValue(storeId, key, value as any)
 }

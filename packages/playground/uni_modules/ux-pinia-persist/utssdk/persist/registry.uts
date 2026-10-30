@@ -8,8 +8,12 @@
  * 存储：JSON 信封序列化（{ v: 值 }）——规避 uni storage 未命中返回空串与合法空值
  * 的歧义，损坏数据 parse 失败自动回退默认值；后端可经 setStorageAdapter 替换。
  *
- * Kotlin 泛型擦除红线：泛型值进出 Map / Ref<any> 一律显式 as any。
+ * Kotlin 红线（云打包 release 实证）：
+ * - 泛型 T 进出 Map / Ref 一律显式 as any（error17），trackRef 不带泛型参数
+ * - 适配器 lambda 内不做单步 Any?→String? 强转，分步显式标注
+ * - 函数作值必须箭头 const 表达式（function 声明不能作值传递）
  */
+import type { Ref } from 'vue'
 import type { PersistEntry, StorageAdapter } from '../interface.uts'
 
 /** 键前缀：与其它存储使用方隔离 */
@@ -18,20 +22,27 @@ export const PERSIST_KEY_PREFIX = 'ux-pinia-persist:'
 /** storeId → 字段引用列表（UTS 顶层变量 = Kotlin 静态成员，应用级单例） */
 export const registry: Map<string, Array<PersistEntry>> = new Map<string, Array<PersistEntry>>()
 
-/** 当前存储适配器（默认 uni storage，可经 setStorageAdapterImpl 替换） */
-let adapter: StorageAdapter = {
-	get: (key: string): string | null => {
-		const raw = uni.getStorageSync(key)
-		// uni-app x getStorageSync 未命中返回空串；本项目经 JSON 信封存储，空串即未命中
-		if (raw == null || raw == '') {
-			return null
-		}
-		return raw as string
-	},
-	set: (key: string, value: string): void => {
-		uni.setStorageSync(key, value as any)
+/** 默认读取：uni storage（未命中返回空串），归一为 string | null */
+const defaultGet = (key: string): string | null => {
+	// getStorageSync 返回 Any?：any 声明必须带 | null（Kotlin 端 Any? 赋非空 Any 编译报错）
+	const raw: any | null = uni.getStorageSync(key)
+	if (raw == null) {
+		return null
 	}
+	const text: string = raw as string
+	if (text.length == 0) {
+		return null
+	}
+	return text
 }
+
+/** 默认写入：uni storage */
+const defaultSet = (key: string, value: string): void => {
+	uni.setStorageSync(key, value as any)
+}
+
+/** 当前存储适配器（默认 uni storage，可经 setStorageAdapterImpl 替换） */
+let adapter: StorageAdapter = { get: defaultGet, set: defaultSet }
 
 /** 替换存储后端（实现「使用者自选持久化库」：unix-storage / 原生 preferences 等） */
 export function setStorageAdapterImpl(next: StorageAdapter): void {
@@ -48,33 +59,36 @@ export function storageKeyOf(storeId: string, key: string): string {
 	return PERSIST_KEY_PREFIX + storeId + '.' + key
 }
 
-/** 从存储读取持久化值；未命中或损坏返回 null（回退默认值） */
-export function loadValue<T>(storeId: string, key: string): T | null {
-	const raw: string | null = adapter.get(storageKeyOf(storeId, key))
-	if (raw == null) {
+/** 从存储读取持久化值；未命中或损坏返回 null（回退默认值）。泛型边界以 any 承载 */
+export function loadValue(storeId: string, key: string): any | null {
+	// adapter.get 经对象字面量桥接后 Kotlin 端表达式类型为 Any?：先以 any | null 承载，再显式收窄 string
+	const rawAny: any | null = adapter.get(storageKeyOf(storeId, key))
+	if (rawAny == null) {
 		return null
 	}
-	const envelope: PersistEnvelope | null = JSON.parse<PersistEnvelope>(raw)
+	const raw: string = rawAny as string
+	const parsed: any | null = JSON.parse(raw)
+	const envelope: PersistEnvelope | null = parsed as PersistEnvelope | null
 	if (envelope == null) {
 		return null
 	}
-	return envelope.v as T
+	return envelope.v
 }
 
 /** 写入持久化值（JSON 信封） */
-export function saveValue<T>(storeId: string, key: string, value: T): void {
-	const envelope: PersistEnvelope = { v: value as any }
+export function saveValue(storeId: string, key: string, value: any): void {
+	const envelope: PersistEnvelope = { v: value }
 	adapter.set(storageKeyOf(storeId, key), JSON.stringify(envelope))
 }
 
-/** 登记字段引用（persistRef 的注册步骤；插件钩子按 storeId 取回） */
-export function trackRef<T>(storeId: string, key: string, source: Ref<T>): Ref<T> {
+/** 登记字段引用（persistRef 的注册步骤；插件钩子按 storeId 取回）。非泛型签名，Ref<any> 承载 */
+export function trackRef(storeId: string, key: string, source: Ref<any>): Ref<any> {
 	let entries: Array<PersistEntry> | null = registry.get(storeId)
 	if (entries == null) {
 		entries = new Array<PersistEntry>()
 		registry.set(storeId, entries)
 	}
-	entries.push({ key: key, source: source as any } as PersistEntry)
+	entries.push({ key: key, source: source } as PersistEntry)
 	return source
 }
 
