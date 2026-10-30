@@ -2,16 +2,15 @@ import { createSSRApp } from 'vue'
 import App from './App.uvue'
 import { router } from './router/index.uts'
 import { createPinia, setActivePinia } from '@/uni_modules/ux-pinia'
-import { persistPlugin } from '@/uni_modules/ux-pinia-persist'
 
 export function createApp() {
   const app = createSSRApp(App)
   // 安装 ux-router：provide 路由实例 + 注入全局 mixin（页面 onShow 自动 syncRoute）
   app.use(router)
   // P8 裁决：原生端 app.use(Pinia实例) 不触发 install（双端不一致）→ 状态管理侧统一免挂载。
-  // 插件场景的标准写法：顶层登记实例并链式注册插件（persistPlugin：持久化自动落盘）。
-  // 纯状态管理时本文件可留空（首次 useStore 惰性创建默认 Pinia 实例）。
-  setActivePinia(createPinia().use(persistPlugin))
+  // 持久化不依赖插件钩子：persistedRef 在 store setup 内直接组合「恢复 + watch 落盘」，
+  // 插件侧仅提供纯存储原语（5.34 编译器实证：UTS 插件内 vue 符号无法生成 Kotlin import）。
+  setActivePinia(createPinia())
   return {
     app
   }

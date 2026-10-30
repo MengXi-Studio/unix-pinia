@@ -1,0 +1,24 @@
+import { ref, watch } from 'vue'
+import type { Ref } from 'vue'
+import { loadPersisted, savePersisted } from '@/uni_modules/ux-pinia-persist'
+
+/**
+ * 主工程侧持久化字段 helper：恢复初值 + 字段级 watch 自动落盘。
+ *
+ * 为什么在主工程而不是插件内（HBuilderX 5.34 云打包实证）：
+ * UTS 插件内 vue 符号（Ref/ref/watch）的 Kotlin import 生成失效（云打包 Unresolved），
+ * 主工程 / 页面编译路径不受影响——插件保持零 vue 符号（纯存储原语），vue API 收拢本层。
+ *
+ * store 内保持每字段一行约定：
+ * const pvCount: Ref<number> = persistedRef('persist-demo', 'count', 0)
+ */
+export function persistedRef<T>(storeId: string, key: string, defaultValue: T): Ref<T> {
+	// 启动恢复：读存储信封解包，未命中 / 损坏回退默认值
+	const saved: any | null = loadPersisted(storeId, key)
+	const r: Ref<T> = ref(saved != null ? (saved as T) : defaultValue) as Ref<T>
+	// 字段级 watch 自动落盘（整体订阅已裁掉，Ref 天然可 watch；应用级生命周期）
+	watch(r, (nv: any, ov: any): void => {
+		savePersisted(storeId, key, nv)
+	})
+	return r
+}

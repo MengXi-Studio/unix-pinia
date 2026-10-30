@@ -1,8 +1,8 @@
 {
 	"id": "ux-pinia-persist",
 	"displayName": "unix-pinia 持久化插件",
-	"version": "0.1.0",
-	"description": "为 unix-pinia 提供持久化：每字段一行约定（persistRef）+ 字段级 watch 自动落盘（persistPlugin），存储后端可替换",
+	"version": "0.1.1",
+	"description": "为 unix-pinia 提供持久化存储原语（loadPersisted/savePersisted，JSON 信封 + 后端可替换）：vue 侧经 persistedRef 组合恢复与自动落盘",
 	"keywords": [
 		"ux-pinia-persist",
 		"unix-pinia",

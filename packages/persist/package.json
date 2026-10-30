@@ -1,7 +1,7 @@
 {
 	"name": "@meng-xi/unix-pinia-persist",
 	"type": "module",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"private": false,
 	"description": "unix-pinia 持久化插件：每字段一行约定 + 自动落盘，存储后端可替换",
 	"keywords": [

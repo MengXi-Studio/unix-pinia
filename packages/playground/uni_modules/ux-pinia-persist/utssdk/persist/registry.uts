@@ -1,26 +1,20 @@
 /**
- * store 注册表 + 存储层（实现层）
+ * 存储层（实现层，纯存储原语——零 vue 符号）
  *
- * 注册表：storeId → 持久化字段引用列表。persistRef 在 store setup 内登记 Ref 引用，
- * persistPlugin 在 store 创建钩子里按 storeId 取回引用建立字段级 watch——
- * 用「约定注册」替代反射（UTS 无运行时字段枚举），这是本插件成立的核心。
+ * JSON 信封序列化（{ v: 值 }）——规避 uni storage 未命中返回空串与合法空值
+ * 的歧义，损坏数据 parse 失败自动回退默认值；后端可经 setStorageAdapterImpl 替换。
  *
- * 存储：JSON 信封序列化（{ v: 值 }）——规避 uni storage 未命中返回空串与合法空值
- * 的歧义，损坏数据 parse 失败自动回退默认值；后端可经 setStorageAdapter 替换。
- *
- * Kotlin 红线（云打包 release 实证）：
- * - 泛型 T 进出 Map / Ref 一律显式 as any（error17），trackRef 不带泛型参数
+ * Kotlin 红线（云打包 release 实证，HBuilderX 5.34）：
+ * - 零 vue 符号：5.34 编译器对 UTS 插件内 vue 符号（Ref/ref/watch）的 Kotlin import
+ *   生成失效（源码 import 亦被忽略）→ Unresolved；插件保持零 vue 依赖与 core 同构
+ * - uni.getStorageSync 返回 Any?：any 声明必须带 | null
  * - 适配器 lambda 内不做单步 Any?→String? 强转，分步显式标注
  * - 函数作值必须箭头 const 表达式（function 声明不能作值传递）
  */
-import type { Ref } from 'vue'
-import type { PersistEntry, StorageAdapter } from '../interface.uts'
+import type { StorageAdapter } from '../interface.uts'
 
 /** 键前缀：与其它存储使用方隔离 */
 export const PERSIST_KEY_PREFIX = 'ux-pinia-persist:'
-
-/** storeId → 字段引用列表（UTS 顶层变量 = Kotlin 静态成员，应用级单例） */
-export const registry: Map<string, Array<PersistEntry>> = new Map<string, Array<PersistEntry>>()
 
 /** 默认读取：uni storage（未命中返回空串），归一为 string | null */
 const defaultGet = (key: string): string | null => {
@@ -59,7 +53,7 @@ export function storageKeyOf(storeId: string, key: string): string {
 	return PERSIST_KEY_PREFIX + storeId + '.' + key
 }
 
-/** 从存储读取持久化值；未命中或损坏返回 null（回退默认值）。泛型边界以 any 承载 */
+/** 从存储读取持久化值；未命中或损坏返回 null（调用方回退默认值）。泛型边界以 any 承载 */
 export function loadValue(storeId: string, key: string): any | null {
 	// adapter.get 经对象字面量桥接后 Kotlin 端表达式类型为 Any?：先以 any | null 承载，再显式收窄 string
 	const rawAny: any | null = adapter.get(storageKeyOf(storeId, key))
@@ -79,21 +73,4 @@ export function loadValue(storeId: string, key: string): any | null {
 export function saveValue(storeId: string, key: string, value: any): void {
 	const envelope: PersistEnvelope = { v: value }
 	adapter.set(storageKeyOf(storeId, key), JSON.stringify(envelope))
-}
-
-/** 登记字段引用（persistRef 的注册步骤；插件钩子按 storeId 取回）。非泛型签名，Ref<any> 承载 */
-export function trackRef(storeId: string, key: string, source: Ref<any>): Ref<any> {
-	let entries: Array<PersistEntry> | null = registry.get(storeId)
-	if (entries == null) {
-		entries = new Array<PersistEntry>()
-		registry.set(storeId, entries)
-	}
-	entries.push({ key: key, source: source } as PersistEntry)
-	return source
-}
-
-/** 按 storeId 取回字段列表；未注册返回 null */
-export function getEntries(storeId: string): Array<PersistEntry> | null {
-	const v: Array<PersistEntry> | null = registry.get(storeId)
-	return v
 }

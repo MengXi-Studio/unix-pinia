@@ -6,7 +6,7 @@
 		<view class="container">
 			<view class="card">
 				<text class="card-title">功能说明</text>
-				<text class="card-desc">unix-pinia-persist 生态示范：persistRef 声明即持久化（创建时从存储恢复初始值），persistPlugin 挂接字段级 watch 自动落盘；tempValue 为普通内存字段（对照项）。修改后直接读存储验证落盘；杀进程重进可验证恢复。进入页面自动运行。</text>
+				<text class="card-desc">unix-pinia-persist 生态示范：persistedRef 声明即持久化（声明时从存储恢复初始值并挂接字段级 watch 自动落盘）；tempValue 为普通内存字段（对照项）。修改后直接读存储验证落盘；杀进程重进可验证恢复。进入页面自动运行。</text>
 			</view>
 
 			<view class="card">
@@ -88,7 +88,7 @@
 			pStore.setTemp('changed-in-memory')
 			setTimeout((): void => {
 				log(mark('PS1-4 内存字段不落盘（对照）', readRaw('temp') == '<未落盘>', 'tempValue 未写入存储'))
-				// PS1-5 启动恢复说明：本进程 persistRef 已用存储值初始化；杀进程重进后本页将显示存储中的值
+				// PS1-5 启动恢复说明：本进程 persistedRef 已用存储值初始化；杀进程重进后本页将显示存储中的值
 				log('PS1-5 启动恢复：杀进程重新进入本页，pvCount/pvName 应显示存储值，tempValue 回默认（对照）')
 			}, 200)
 		}, 200)
