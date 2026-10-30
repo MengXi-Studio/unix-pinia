@@ -1,56 +1,37 @@
-**中文** | [English](./README-en.md)
+<img alt="梦曦工作室 Logo" width="180" src="https://raw.githubusercontent.com/MengXi-Studio/unix-pinia/master/packages/docs/src/public/logo.png">
 
-<div align="center">
-  <a href="https://github.com/MengXi-Studio/unix-pinia">
-    <img alt="梦曦工作室 Logo" width="215" src="https://github.com/MengXi-Studio/unix-pinia/blob/master/packages/docs/src/public/logo.png">
-  </a>
-  <a href="https://github.com/MengXi-Studio/unix-pinia">
-    <img alt="微信公众号 二维码" width="215" src="https://github.com/MengXi-Studio/unix-pinia/blob/master/packages/docs/src/public/QR_code.jpg">
-  </a>
-  <br>
-  <h1>@meng-xi/unix-pinia-persist</h1>
-  <p>为 uni-app x 提供持久化的生态示范插件（存储原语 + 每字段一行约定，后端可替换）</p>
+# ux-pinia-persist
 
-[![license](https://img.shields.io/github/license/MengXi-Studio/unix-pinia.svg)](./license.md) [![npm](https://img.shields.io/npm/v/@meng-xi/unix-pinia-persist?color=blue)](https://www.npmjs.com/package/@meng-xi/unix-pinia-persist)
-![npm](https://img.shields.io/npm/dt/@meng-xi/unix-pinia-persist?color=green)
+为 [ux-pinia](https://www.npmjs.com/package/@meng-xi/unix-pinia) 提供持久化（存储原语 + 每字段一行约定，后端可替换）。
 
-</div>
-
-## 为什么是 unix-pinia-persist
-
-uni-app x 的状态是内存态：应用冷启动即失——计数器、登录态、用户偏好，每项都要手写 `getStorageSync` / `setStorageSync` 样板，还要自己处理序列化、脏数据与键名规范。标准 Pinia 生态的 [pinia-plugin-persistedstate](https://prazdevs.github.io/pinia-plugin-persistedstate/) 在这里帮不上忙：vdom 模式原生端连标准 Pinia 都不可用，且 UTS 无反射、插件不能注入属性——`{ persist: true }` 的零约定全自动形态没有实现基础。unix-pinia-persist 把持久化收敛成**两个存储原语 + 一行约定**：
-
-- **用过 persistedstate？** 「声明即持久化」的心智保留：每字段一行 `persistedRef` 声明，恢复与自动落盘全部内建；
-- **在意数据安全？** 每字段独立 JSON 信封（`{ v }`）序列化——规避 uni storage「未命中返回空串」与合法空值的歧义，损坏数据自动回退默认值；
-- **换存储后端？** `setStorageAdapter` 一个函数切换 unix-storage / 原生 preferences，业务代码零改动。
+**ux-pinia-persist** 是开源项目 [unix-pinia](https://github.com/MengXi-Studio/unix-pinia) 的 uni_modules 插件发行版（npm 包名
+[`@meng-xi/unix-pinia-persist`](https://www.npmjs.com/package/@meng-xi/unix-pinia-persist)），把持久化收敛成**两个存储原语 + 一行约定**：JSON 信封序列化防脏数据、每字段独立存储键、后端可替换——对标 pinia-plugin-persistedstate 的「声明即持久化」体验，适配 UTS 的强类型约束。
 
 ## 特性
 
-- **纯存储原语** - `loadPersisted` / `savePersisted`：JSON 信封读写，未命中或损坏自动回退，插件层零 vue 依赖
-- **每字段一行约定** - 主工程 `persistedRef` helper（示例见下）：声明即持久化，恢复 + 字段级 watch 自动落盘全部内建
-- **后端可替换** - `setStorageAdapter`：默认 uni storage，可换 unix-storage / 原生 preferences，业务代码零改动
-- **架构稳态** - 插件层零 vue 符号（HBuilderX 5.34 云打包实证：UTS 插件内 vue 符号的 Kotlin import 生成失效，与 ux-pinia core 同构是唯一稳态），Kotlin / JS 编译链无额外风险
-- **强类型 UTS** - 全量显式类型标注；Kotlin 可空性边界（`Any?` / 对象字面量桥接）已在库内收敛，业务侧零感知
-- **双端实测** - Web（JS 编译链）全用例通过；Android 与 core 同构（Kotlin 编译链），待真机复验
+- **纯存储原语**：`loadPersisted` / `savePersisted` 零 vue 依赖，插件层与 ux-pinia core 同构（HBuilderX 5.34 云打包实证的稳态架构）
+- **每字段一行约定**：主工程 `persistedRef` helper 组合恢复与自动落盘，store 内声明即持久化
+- **JSON 信封序列化**：每字段独立 `{ v }` 信封——规避 uni storage「未命中返回空串」与合法空值的歧义，损坏数据自动回退默认值
+- **后端可替换**：`setStorageAdapter` 一个函数切换 unix-storage / 原生 preferences，业务代码零改动
+- **强类型 UTS**：全量显式类型标注；Kotlin 可空性边界（`Any?` / 对象字面量桥接）已在库内收敛
 
-## 安装
+## 平台兼容性
 
-**npm**——安装后将包内容同步到工程 `uni_modules/ux-pinia-persist/`（编译器不扫描 node_modules）：
+| App-Android | App-iOS | App-HarmonyOS | Web（Chrome / Safari） | 微信小程序 |
+| :---------: | :-----: | :-----------: | :--------------------: | :--------: |
+|      √      |    √    |       √       |           √            |     √      |
 
-```bash
-pnpm add @meng-xi/unix-pinia-persist
-mkdir -p uni_modules && cp -R node_modules/@meng-xi/unix-pinia-persist uni_modules/ux-pinia-persist
-```
+> 环境要求：HBuilderX 4.75+，uni-app x 项目；依赖 [ux-pinia](https://ext.dcloud.net.cn/plugin?name=ux-pinia)。
 
-**插件市场**：搜索 `ux-pinia-persist` 导入 HBuilderX。
+## 使用说明
 
-> `packages/persist` 为标准 **uni_modules UTS 插件**（`utssdk/` 官方目录结构 + `interface.uts` 对外声明），业务侧从 `@/uni_modules/ux-pinia-persist` 导入。
+### 1. 导入插件
 
-## 快速开始
+在 HBuilderX 中通过插件市场「导入插件」安装（同时导入依赖 ux-pinia），插件位于工程 `uni_modules/ux-pinia-persist/`；也可从 npm 安装后将包内容复制到 `uni_modules/ux-pinia-persist/`。
 
-### 1. 主工程侧定义 helper（stores/persist-helper.uts）
+### 2. 主工程侧定义 helper（stores/persist-helper.uts）
 
-插件层是纯存储原语（零 vue 符号），恢复与落盘的 vue API（`ref` / `watch`）在主工程组合一次、全项目复用：
+插件层是纯存储原语，恢复与落盘的 vue API（`ref` / `watch`）在主工程组合一次、全项目复用：
 
 ```uts
 // stores/persist-helper.uts（主工程文件，可用 vue API）
@@ -69,7 +50,7 @@ export function persistedRef<T>(storeId: string, key: string, defaultValue: T): 
 }
 ```
 
-### 2. store 内每字段一行（stores/user.uts）
+### 3. store 内每字段一行
 
 ```uts
 import type { Ref } from 'vue'
@@ -89,68 +70,43 @@ export const useUserStore = defineStore<UserStore>('user', (): UserStore => {
 })
 ```
 
-- **恢复**：`persistedRef` 创建 ref 时即从存储读初始值（未命中或损坏数据自动回退默认值）
-- **落盘**：内建字段级 watch，值变化即写存储（应用级生命周期，无需挂接任何插件，main.uts 保持免挂载）
-- **直读/调试**：`getStorageKey('user', 'token')` 组出完整键 `ux-pinia-persist:user.token`，配合控制台直查存储内容
+> 为什么需要主工程 helper：UTS 插件内 vue 符号（Ref/ref/watch）的 Kotlin import 生成失效（HBuilderX 5.34 云打包实证），插件保持零 vue 符号是唯一稳态；主工程 / 页面编译路径不受影响。
 
-### 3. 换存储后端（可选）
+## API 清单
 
-```uts
-import { setStorageAdapter } from '@/uni_modules/ux-pinia-persist'
+| API | 说明 |
+| --- | --- |
+| loadPersisted | 读取持久化值（JSON 信封解包），未命中 / 损坏返回 null |
+| savePersisted | 写入持久化值（JSON 信封封装） |
+| getStorageKey | 组完整存储键（`ux-pinia-persist:<storeId>.<key>`），调试直读存储用 |
+| setStorageAdapter | 替换存储后端（默认 uni storage，可换 unix-storage / 原生 preferences） |
+| StorageAdapter | 存储后端契约类型：`{ get, set }` |
 
-// 在首次读写字段前调用；以 unix-storage 为例
-setStorageAdapter({
-	get: (key: string): string | null => {
-		const r: any | null = uni.getStorageSync(key)
-		return r == null || (r as string).length == 0 ? null : r as string
-	},
-	set: (key: string, value: string): void => { uni.setStorageSync(key, value) }
-})
-```
+## 文档与演示
 
-## 运行效果
+- 📖 完整文档（指南 + API 参考 + 更新日志，中英双语）：[https://mengxi-studio.github.io/unix-pinia/](https://mengxi-studio.github.io/unix-pinia/)
+- 💻 示例工程：仓库自带 [packages/playground](https://github.com/MengXi-Studio/unix-pinia/tree/master/packages/playground)，「持久化插件」页运行 PS1-1 ~ PS1-5 完整验证用例
+- 📱 Android 真机体验：[下载演示 App（APK）](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1792298656822-__UNI__0AA2919_1792298648182.apk)
 
-仓库自带示例工程 [packages/playground](https://github.com/MengXi-Studio/unix-pinia/tree/master/packages/playground)，「持久化插件 Persist」页以 PS1-1 ~ PS1-5 用例验证完整链路（修改自动落盘 / 直读存储验证信封内容 / 内存字段不落盘对照 / 启动恢复），以 `[verify]` 前缀输出日志并在页面直接显示 pass/fail。用 HBuilderX 打开 `packages/playground` 即可发行 Web / Android 复验。
+## 更新记录
 
-**Android 体验包（云打包产物）**：[下载 APK](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1792298656822-__UNI__0AA2919_1792298648182.apk)（vdom 模式，安装后进入「持久化插件」页查看 PS1 结果）
+### 0.1.0（2026-10-30）
 
-**双端实测结论**：Web 全部用例通过；Android 侧插件与 ux-pinia core 同构（Kotlin 编译链零 vue 符号），待真机复验。
+- 首个版本发布：unix-pinia 生态持久化插件（纯存储原语形态）
+- API：loadPersisted / savePersisted / getStorageKey / setStorageAdapter，类型 StorageAdapter
+- 零 vue 依赖架构：与 ux-pinia core 同构，Kotlin / JS 编译链无额外风险
 
-## 与 pinia-plugin-persistedstate 的差异
-
-| 项 | persistedstate | 本库 |
-| --- | --- | --- |
-| 声明成本 | `{ persist: true }` 零约定 | 每字段一行 `persistedRef` |
-| 实现原理 | Proxy 拦截 + `$subscribe` + 注入 `$hydrate` | 存储原语 + 主工程 helper 组合（无反射 / 无注入） |
-| 序列化 | JSON 全量快照 | 每字段独立 JSON 信封（`{ v }`），损坏自动回退 |
-| 订阅粒度 | 整体 `$subscribe` | 字段级 `watch`（P9 实证：deep watch Android 端不触发） |
+完整更新记录见 [changelog.md](./changelog.md)。
 
 ## 交流与支持
 
-想了解设计思路与实现原理（JSON 信封序列化、可替换后端契约、5.34 编译器实证的插件架构约束等）？公众号「**梦曦工作室**」有系列解析，扫码关注：
+想了解设计思路与实现原理（JSON 信封序列化、可替换后端契约、5.34 编译器实证的插件架构约束等）？公众号「**梦曦工作室**」有系列解析，扫码获取更多信息：
 
-<p align="center">
-  <img alt="微信公众号 二维码" width="180" src="https://github.com/MengXi-Studio/unix-pinia/blob/master/packages/docs/src/public/QR_code.jpg">
-</p>
+<img alt="微信公众号二维码" width="180" src="https://raw.githubusercontent.com/MengXi-Studio/unix-pinia/master/packages/docs/src/public/QR_code.jpg">
 
-- 📖 [完整文档](https://mengxi-studio.github.io/unix-pinia/)（指南 + API 参考 + 更新日志）
 - 🐛 [Issues](https://github.com/MengXi-Studio/unix-pinia/issues) / 💬 [Discussions](https://github.com/MengXi-Studio/unix-pinia/discussions)
+- 🌐 官网：[mengxi-studio.github.io](https://mengxi-studio.github.io/.github/)
 
-## 导出
+## 开源协议
 
-- API：`loadPersisted` / `savePersisted` / `getStorageKey` / `setStorageAdapter`
-- 类型：`StorageAdapter`
-
-## 文档
-
-📖 unix-pinia 全家桶文档（指南 + API 参考 + 更新日志）：
-
-**[https://mengxi-studio.github.io/unix-pinia/](https://mengxi-studio.github.io/unix-pinia/)**
-
-## 更新日志
-
-📝 **[https://github.com/MengXi-Studio/unix-pinia/blob/master/packages/playground/uni_modules/ux-pinia-persist/changelog.md](https://github.com/MengXi-Studio/unix-pinia/blob/master/packages/playground/uni_modules/ux-pinia-persist/changelog.md)**
-
-## License
-
-[MIT](./license.md)
+[MIT](./license.md) © MengXi-Studio
