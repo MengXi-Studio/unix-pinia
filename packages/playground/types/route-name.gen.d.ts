@@ -18,6 +18,8 @@ declare module '@/uni_modules/ux-router/utssdk/index.uts' {
 		'cross-verify': 'pages-sub/cross-verify/cross-verify'
 		/** 实例 API */
 		'instance-api': 'pages-sub/instance-api/instance-api'
+		/** 持久化插件 */
+		persist: 'pages-sub/persist/persist'
 		/** 插件与 Pinia 实例 */
 		plugin: 'pages-sub/plugin/plugin'
 		/** 响应式矩阵 */

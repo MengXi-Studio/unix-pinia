@@ -1,0 +1,37 @@
+<template>
+	<!-- 联动桥接占位节点：零尺寸，不参与布局 -->
+	<view class="demo-bridge"></view>
+</template>
+
+<script setup lang="uts">
+	type DemoScrollMessage = {
+		type?: string | null
+		id?: string | null
+	}
+
+	// #ifdef WEB
+	/**
+	 * 文档站模拟器联动桥（仅 Web 端生效）：
+	 * 接收文档站 DemoPhone 的 postMessage，平滑滚动到锚点对应的演示分节
+	 */
+	const onMessage = (event: any) => {
+		const data = event.data as DemoScrollMessage | null
+		if (data == null || data.type != 'demo-scroll' || data.id == null) return
+		const target = document.getElementById(data.id)
+		if (target != null) {
+			target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+		}
+	}
+
+	window.addEventListener('message', onMessage)
+	onUnmounted(() => {
+		window.removeEventListener('message', onMessage)
+	})
+	// #endif
+</script>
+
+<style>
+	.demo-bridge {
+		display: none;
+	}
+</style>

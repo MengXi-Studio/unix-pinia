@@ -1,22 +1,25 @@
 <template>
-	<scroll-view style="flex:1">
+	<view class="page">
+		<demo-navbar title="基础用法" subtitle="Basic" />
+		<demo-bridge />
+		<scroll-view class="page-body" :scroll-y="true">
 		<view class="container">
-			<view class="intro">
-				<text class="intro-title">功能说明</text>
-				<text class="intro-text">setup 式 defineStore：state 用 Ref、getter 用 ComputedRef、action 用箭头函数。脚本访问 state 需 .value（UTS 无 Proxy 不自动解包），模板经 storeToRefs 解构后自动解包。进入页面自动运行。</text>
+			<view class="card">
+				<text class="card-title">功能说明</text>
+				<text class="card-desc">class 式 defineStore：class extends PiniaStoreBase，state 用 reactive&lt;T&gt; 强类型包裹、派生值用 class getter、action 为普通 method。模板直接 counter.state.count（响应式），脚本同路径。进入页面自动运行。</text>
 			</view>
 
 			<view class="card">
-				<text class="card-line">count: {{ count }}</text>
-				<text class="card-line">doubleCount: {{ doubleCount }}</text>
-				<text class="card-line">name: {{ name }}</text>
+				<text class="card-line">count: {{ counterStore.state.count }}</text>
+				<text class="card-line">doubleCount: {{ counterStore.doubleCount }}</text>
+				<text class="card-line">name: {{ counterStore.state.name }}</text>
 			</view>
 
 			<text class="section">用例</text>
 			<view class="row">
 				<button class="row-btn" size="mini" @click="run">重新运行</button>
-				<button class="row-btn" size="mini" @click="counterStore.increment">increment</button>
-				<button class="row-btn" size="mini" @click="counterStore.reset">reset</button>
+				<button class="row-btn" size="mini" @click="counterStore.increment()">increment</button>
+				<button class="row-btn" size="mini" @click="counterStore.reset()">reset</button>
 			</view>
 
 			<view class="logs">
@@ -27,22 +30,23 @@
 				<text v-for="(line, index) in logs" :key="index" class="log">{{ line }}</text>
 			</view>
 		</view>
-	</scroll-view>
+		</scroll-view>
+	</view>
 </template>
 
 <script setup lang="uts">
+	import DemoNavbar from '@/components/demo-navbar/demo-navbar.uvue'
+	import DemoBridge from '@/components/demo-bridge/demo-bridge.uvue'
 	// 页面声明宏：编译期由 ux-router vite 插件剥离，驱动 pages.json 与路由表生成
 	defineUniPage({
 		title: '基础用法',
 		name: 'basic'
 	})
 	import { ref } from 'vue'
-	import { storeToRefs } from '@/uni_modules/ux-pinia'
 	import { useCounterStore } from '@/stores/counter.uts'
 	import { markEq } from '@/common/test-utils.uts'
 
 	const counterStore = useCounterStore()
-	const { count, name, doubleCount } = storeToRefs(counterStore)
 
 	const logs = ref<Array<string>>([])
 
@@ -62,14 +66,14 @@
 	/** B1 基础用法 */
 	function run(): void {
 		counterStore.reset()
-		log('B1-1 初始 state count=' + counterStore.count.value.toString() + ' name=' + counterStore.name.value)
+		log('B1-1 初始 state count=' + counterStore.state.count.toString() + ' name=' + counterStore.state.name)
 		counterStore.increment()
-		log(markEq('B1-2 action 修改后 count', counterStore.count.value, 1))
-		log(markEq('B1-3 getter 派生 doubleCount=count*2', counterStore.doubleCount.value, counterStore.count.value * 2))
+		log(markEq('B1-2 action 修改后 count', counterStore.state.count, 1))
+		log(markEq('B1-3 getter 派生 doubleCount=count*2', counterStore.doubleCount, counterStore.state.count * 2))
 		counterStore.setName('unix-pinia')
-		log('B1-4 action 传参 setName → name=' + counterStore.name.value)
+		log('B1-4 action 传参 setName → name=' + counterStore.state.name)
 		counterStore.reset()
-		log(markEq('B1-5 reset 后 count', counterStore.count.value, 0))
+		log(markEq('B1-5 reset 后 count', counterStore.state.count, 0))
 		log('B1 用例完成，模板绑定实时联动（点 increment 观察）')
 	}
 
@@ -77,18 +81,3 @@
 		run()
 	})
 </script>
-
-<style>
-	.card {
-		flex-direction: column;
-		background-color: #ffffff;
-		border-radius: 16rpx;
-		padding: 24rpx;
-	}
-
-	.card-line {
-		font-size: 28rpx;
-		color: #1a1a1a;
-		margin-bottom: 8rpx;
-	}
-</style>

@@ -1,0 +1,102 @@
+/**
+ * 功能演示条目数据表（首页分组导航的唯一数据源）
+ *
+ * 新增功能页时在对应分组的 items 中登记一条即可，
+ * 首页分组列表与搜索过滤自动生效；演示页路由需另行在
+ * 页面 defineUniPage 与 pages.json 中登记。
+ */
+
+/** 功能演示条目 */
+export type DemoPage = {
+	/** 路由名（router.push 按名导航，须与 defineUniPage 的 name 一致） */
+	name: string
+	/** 中文名 */
+	zhName: string
+	/** 英文标识（与页面目录名一致，兼作 navbar 副标题） */
+	enName: string
+	/** 一句话简介 */
+	desc: string
+}
+
+/** 演示分组 */
+export type DemoGroup = {
+	/** 分组标题 */
+	title: string
+	/** 组内功能条目 */
+	items: DemoPage[]
+}
+
+/**
+ * 功能演示分组表（分组体系：基础能力 / 单例与组合 / 实例 API 与插件）
+ */
+export const demoGroups: DemoGroup[] = [
+	{
+		title: '基础能力',
+		items: [
+			{
+				name: 'basic',
+				zhName: '基础用法',
+				enName: 'Basic',
+				desc: 'class 式 defineStore：state / getter / action 与模板绑定'
+			},
+			{
+				name: 'reactive',
+				zhName: '响应式矩阵',
+				enName: 'Reactive',
+				desc: 'reactive state 直接修改的响应式 / getter 联动（class 式）'
+			}
+		]
+	},
+	{
+		title: '单例与组合',
+		items: [
+			{
+				name: 'singleton',
+				zhName: '单例与幂等',
+				enName: 'Singleton',
+				desc: '同 id 幂等返回既有实例，不同 id 相互独立'
+			},
+			{
+				name: 'cross-store',
+				zhName: '跨 store 依赖',
+				enName: 'Cross Store',
+				desc: 'method 内组合其他 store，action 联动修改'
+			},
+			{
+				name: 'cross-page',
+				zhName: '跨页面共享',
+				enName: 'Cross Page',
+				desc: '本页写入 → 断言页比对 → 返回后视图联动'
+			}
+		]
+	},
+	{
+		title: '实例 API 与插件',
+		items: [
+			{
+				name: 'instance-api',
+				zhName: '实例 API',
+				enName: 'Instance API',
+				desc: '$patch / $id / $dispose / $save 实例 API'
+			},
+			{
+				name: 'subscribe',
+				zhName: '状态订阅',
+				enName: 'Subscribe',
+				desc: '$subscribe 整体订阅与取消（$patch/$reset/$save 触发）'
+			},
+			{
+				name: 'plugin',
+				zhName: '插件与 Pinia 实例',
+				enName: 'Plugin',
+				desc: 'createPinia / setActivePinia / 插件调度'
+			},
+			{
+				name: 'persist',
+				zhName: '持久化插件',
+				enName: 'Persist',
+				desc: '内置持久化插件：_hydrate 恢复，$patch/$reset/$save 落盘，后端可替换'
+			}
+		]
+	}
+]

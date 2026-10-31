@@ -1,13 +1,20 @@
 import { createSSRApp } from 'vue'
 import App from './App.uvue'
-import { createPinia, setActivePinia } from '@/uni_modules/ux-pinia'
+import { router } from './router/index.uts'
+import { createPinia, setActivePinia, createPersistPlugin } from '@/uni_modules/ux-pinia'
 
 export function createApp() {
   const app = createSSRApp(App)
-  // P8 裁决：原生端 app.use(Pinia实例) 不触发 install（双端不一致）→ 统一免挂载模式。
-  // 需要插件（pinia.use）时，在顶层显式：setActivePinia(createPinia().use(plugin))
-  // 免挂载时首次 useStore 会惰性创建默认 Pinia 实例，纯状态管理无需本文件任何 pinia 代码。
-  setActivePinia(createPinia())
+  // 安装 ux-router：provide 路由实例 + 注入全局 mixin（页面 onShow 自动 syncRoute）
+  app.use(router)
+  // P8 裁决：原生端 app.use(Pinia实例) 不触发 install（双端不一致）→ 顶层登记为唯一可靠形态。
+  // 持久化插件：store 创建时恢复（_hydrate），$patch/$reset/$save 时落盘（_serialize 快照）。
+  setActivePinia(createPinia().use(createPersistPlugin({
+    keyPrefix: 'ux-pinia:',
+    includeStores: null,
+    excludeStores: new Array<string>(),
+    serializer: null
+  })))
   return {
     app
   }

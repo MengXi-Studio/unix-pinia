@@ -42,6 +42,12 @@
 					}
 				},
 				{
+					"path": "persist/persist",
+					"style": {
+						"navigationBarTitleText": "持久化插件"
+					}
+				},
+				{
 					"path": "plugin/plugin",
 					"style": {
 						"navigationBarTitleText": "插件与 Pinia 实例"
@@ -69,6 +75,7 @@
 		}
 	],
 	"globalStyle": {
+		"navigationStyle": "custom",
 		"navigationBarTextStyle": "black",
 		"navigationBarTitleText": "unix-pinia",
 		"navigationBarBackgroundColor": "#F8F8F8",

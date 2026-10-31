@@ -1,0 +1,44 @@
+/**
+ * 探针 store：页面用例专用测试载体（0.2.0 class 式架构）
+ *
+ * - DisposeTestStore：instance-api 页 $dispose 后重建用例（独立 id，不污染 counter 注册表实例）
+ * - PluginProbeStore：plugin 页插件调度验证载体（run 前先 $dispose，保证重新创建时调度插件）
+ * 均不重写 _serialize / _hydrate（默认空实现）——仅经 direct method 修改，
+ * 不触发 $patch/$reset/$save，持久化插件不会为其产生存储数据（重建必为初始值）。
+ */
+import { reactive } from 'vue'
+import { defineStore, PiniaStoreBase } from '@/uni_modules/ux-pinia'
+
+export type DisposeTestState = {
+	value: number
+}
+
+export class DisposeTestStore extends PiniaStoreBase {
+	state: DisposeTestState = reactive<DisposeTestState>({ value: 0 })
+
+	constructor() {
+		super()
+		this.bindState(this.state)
+	}
+
+	setValue(n: number): void {
+		this.state.value = n
+	}
+}
+
+export const useDisposeTestStore = defineStore<DisposeTestStore>('dispose-test', (): DisposeTestStore => new DisposeTestStore())
+
+export type PluginProbeState = {
+	tag: string
+}
+
+export class PluginProbeStore extends PiniaStoreBase {
+	state: PluginProbeState = reactive<PluginProbeState>({ tag: 'probe' })
+
+	constructor() {
+		super()
+		this.bindState(this.state)
+	}
+}
+
+export const usePluginProbeStore = defineStore<PluginProbeStore>('plugin-probe', (): PluginProbeStore => new PluginProbeStore())

@@ -1,13 +1,16 @@
 <template>
-	<scroll-view style="flex:1">
+	<view class="page">
+		<demo-navbar title="实例 API" subtitle="Instance API" />
+		<demo-bridge />
+		<scroll-view class="page-body" :scroll-y="true">
 		<view class="container">
-			<view class="intro">
-				<text class="intro-title">功能说明</text>
-				<text class="intro-text">实例 API 以顶层函数形态提供（UTS 无 Proxy，store 对象上无法挂方法）：patch 对应 $patch（仅 mutator 形态）、getStoreId 对应 $id、dispose 对应 $dispose。dispose 后既有引用成为孤儿实例，本页使用独立测试 store 验证。进入页面自动运行。</text>
+			<view class="card">
+				<text class="card-title">功能说明</text>
+				<text class="card-desc">实例 API 由 PiniaStoreBase 基类提供（0.2.0 class 式）：$patch(partial UTSJSONObject) 经 _hydrate 装载局部数据、$id 反查 id、$dispose 注销实例（顶层 dispose 等价）、$save 显式保存点（触发 $subscribe 分发 type='save'）。dispose 后既有引用成为孤儿实例，本页使用独立测试 store 验证。进入页面自动运行。</text>
 			</view>
 
 			<view class="card">
-				<text class="card-line">counter.count: {{ count }}</text>
+				<text class="card-line">counter.count: {{ counterStore.state.count }}</text>
 			</view>
 
 			<text class="section">用例</text>
@@ -23,7 +26,8 @@
 				<text v-for="(line, index) in logs" :key="index" class="log">{{ line }}</text>
 			</view>
 		</view>
-	</scroll-view>
+		</scroll-view>
+	</view>
 </template>
 
 <script setup lang="uts">
@@ -33,13 +37,11 @@
 		name: 'instance-api'
 	})
 	import { ref } from 'vue'
-	import { defineStore, storeToRefs, patch, dispose, getStoreId } from '@/uni_modules/ux-pinia'
 	import { useCounterStore } from '@/stores/counter.uts'
-	import type { CounterStore } from '@/stores/counter.uts'
+	import { useDisposeTestStore } from '@/stores/probe.uts'
 	import { mark, markEq } from '@/common/test-utils.uts'
 
 	const counterStore = useCounterStore()
-	const { count } = storeToRefs(counterStore)
 
 	const logs = ref<Array<string>>([])
 
@@ -56,56 +58,37 @@
 		logs.value.splice(0, logs.value.length)
 	}
 
-	// I1 专用测试 store：dispose 用例独立化，不污染 counter 的注册表实例
-	type DisposeTestStore = {
-		value: Ref<number>,
-		setValue: (n: number) => void
-	}
-	const useDisposeTestStore = defineStore<DisposeTestStore>('dispose-test', (): DisposeTestStore => {
-		const value: Ref<number> = ref(0)
-		const setValue = (n: number): void => {
-			value.value = n
-		}
-		return { value, setValue } as DisposeTestStore
-	})
-
 	/** I1 实例 API */
 	function run(): void {
-		// I1-1 patch：批量修改（mutator）
-		patch(counterStore, (s: CounterStore): void => {
-			s.count.value = 66
-		})
-		log(markEq('I1-1 patch 批量修改 count', counterStore.count.value, 66))
+		// I1-1 $patch：批量修改（partial UTSJSONObject，经 _hydrate 装载）
+		counterStore.$patch({ count: 66 } as UTSJSONObject)
+		log(markEq('I1-1 $patch 批量修改 count', counterStore.state.count, 66))
 
-		// I1-2 getStoreId：反查 id
-		log(mark('I1-2 getStoreId 反查', getStoreId(counterStore) == 'counter', "id='" + getStoreId(counterStore) + "'"))
+		// I1-2 $id：反查 id（顶层 getStoreId 等价）
+		log(mark('I1-2 $id 反查', counterStore.$id == 'counter', "id='" + counterStore.$id + "'"))
 
-		// I1-3 dispose 后重建（独立 store）
+		// I1-3 $dispose 后重建（独立 probe store，不污染 counter 注册表实例）
 		const oldDs = useDisposeTestStore()
 		oldDs.setValue(7)
-		dispose(oldDs)
+		oldDs.$dispose()
 		const newDs = useDisposeTestStore()
-		const rebuilt = newDs != oldDs && newDs.value.value == 0
-		log(mark('I1-3 dispose 后重建', rebuilt, "新实例 value=0 id='" + getStoreId(newDs) + "'"))
+		const rebuilt = newDs != oldDs && newDs.state.value == 0
+		log(mark('I1-3 $dispose 后重建', rebuilt, "新实例 value=0 id='" + newDs.$id + "'"))
 		log('说明：dispose 后旧引用成为孤儿实例，仅用于应用级清理场景')
+
+		// I1-4 $save：显式保存点（触发 $subscribe 分发 type='save'；direct 修改不触发）
+		let saveNotified = false
+		const unsub = counterStore.$subscribe((type: string, state: UTSJSONObject): void => {
+			if (type == 'save') {
+				saveNotified = true
+			}
+		})
+		counterStore.$save()
+		unsub()
+		log(mark('I1-4 $save 触发订阅（type=save）', saveNotified, 'direct 修改不触发，需显式 $save'))
 	}
 
 	onMounted((): void => {
 		run()
 	})
 </script>
-
-<style>
-	.card {
-		flex-direction: column;
-		background-color: #ffffff;
-		border-radius: 16rpx;
-		padding: 24rpx;
-	}
-
-	.card-line {
-		font-size: 28rpx;
-		color: #1a1a1a;
-		margin-bottom: 8rpx;
-	}
-</style>

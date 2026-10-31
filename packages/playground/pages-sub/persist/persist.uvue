@@ -1,0 +1,104 @@
+<template>
+	<view class="page">
+		<demo-navbar title="持久化插件" subtitle="Persist" />
+		<demo-bridge />
+		<scroll-view class="page-body" :scroll-y="true">
+		<view class="container">
+			<view class="card">
+				<text class="card-title">功能说明</text>
+				<text class="card-desc">ux-pinia 0.2.0 内置持久化插件（main.uts 已注册，keyPrefix 'ux-pinia:'）：store 创建时读存储经 _hydrate 恢复；$patch / $reset / $save 触发 _serialize 快照落盘（store 级快照键 ux-pinia:persist-demo，非字段级信封）；direct 修改不自动落盘，关键操作后调 $save()。tempValue 不在 _serialize 快照中（内存对照项）。杀进程重进可验证恢复。进入页面自动运行。</text>
+			</view>
+
+			<view class="card">
+				<text class="card-line">pvCount（持久化）: {{ pStore.state.pvCount }}</text>
+				<text class="card-line">pvName（持久化）: {{ pStore.state.pvName }}</text>
+				<text class="card-line">tempValue（内存对照）: {{ pStore.state.tempValue }}</text>
+			</view>
+
+			<text class="section">用例</text>
+			<view class="row">
+				<button class="row-btn" size="mini" @click="run">运行（修改→$save→读快照验证落盘）</button>
+				<button class="row-btn" size="mini" @click="pStore.add()">pvCount+1</button>
+				<button class="row-btn" size="mini" @click="addAndSave">pvCount+1 并 $save</button>
+				<button class="row-btn" size="mini" @click="onClear">重置为默认</button>
+			</view>
+
+			<view class="logs">
+				<view class="logs-head">
+					<text class="logs-title">运行日志（console 同步输出 [verify] 前缀日志）</text>
+					<button class="row-btn" size="mini" @click="clearLog">清空</button>
+				</view>
+				<text v-for="(line, index) in logs" :key="index" class="log">{{ line }}</text>
+			</view>
+		</view>
+		</scroll-view>
+	</view>
+</template>
+
+<script setup lang="uts">
+	// 页面声明宏：编译期由 ux-router vite 插件剥离，驱动 pages.json 与路由表生成
+	defineUniPage({
+		title: '持久化插件',
+		name: 'persist'
+	})
+	import { ref } from 'vue'
+	import { usePersistedStore } from '@/stores/persisted.uts'
+	import { mark } from '@/common/test-utils.uts'
+
+	const pStore = usePersistedStore()
+
+	const logs = ref<Array<string>>([])
+
+	function log(msg: string): void {
+		const line = '[verify] ' + msg
+		logs.value.unshift(line)
+		if (logs.value.length > 200) {
+			logs.value.splice(200, logs.value.length - 200)
+		}
+		console.log(line)
+	}
+
+	function clearLog(): void {
+		logs.value.splice(0, logs.value.length)
+	}
+
+	/** 读持久化快照原始值（直读 uni storage，验证插件落盘的真实性） */
+	function readSnapshot(): string {
+		const raw = uni.getStorageSync('ux-pinia:persist-demo')
+		if (raw == null || raw == '') {
+			return '<未落盘>'
+		}
+		return raw as string
+	}
+
+	/** PS1 持久化验证 */
+	function run(): void {
+		// PS1-1/PS1-2 action 修改 + $save 显式落盘（direct action 修改不自动落盘）
+		pStore.setName('persisted-' + pStore.state.pvCount.toString())
+		pStore.add()
+		pStore.$save()
+		const snapshot = readSnapshot()
+		log('PS1-1 $save 后 pvCount 落盘快照: ' + snapshot)
+		log('PS1-2 快照读取键: ux-pinia:persist-demo（store 级快照，非字段级信封）')
+		// PS1-3 断言：快照字符串包含新值
+		log(mark('PS1-3 落盘验证（快照含新 pvCount/pvName）', snapshot.indexOf('"pvCount":' + pStore.state.pvCount.toString()) >= 0 && snapshot.indexOf(pStore.state.pvName) >= 0, '$save 触发 _serialize 快照写存储'))
+		// PS1-4 对照项：tempValue 不在快照中（_serialize 不含，即使显式 $save 也不落盘）
+		pStore.setTemp('changed-in-memory')
+		pStore.$save()
+		const snapshot2 = readSnapshot()
+		log(mark('PS1-4 内存字段不落盘（对照）', snapshot2.indexOf('changed-in-memory') < 0, 'tempValue 不在 _serialize 快照中'))
+		// PS1-5 启动恢复说明：本进程 store 创建时插件已读存储 _hydrate；杀进程重进后显示存储值
+		log('PS1-5 启动恢复：杀进程重新进入本页，pvCount/pvName 应显示存储值，tempValue 回默认（对照）')
+	}
+
+	const addAndSave = (): void => {
+		pStore.add()
+		pStore.$save()
+		log('pvCount+1 后已 $save 落盘（direct action 修改需显式 $save）')
+	}
+
+	const onClear = (): void => {
+		pStore.$reset()
+		log('已 $reset 为默认值（$reset 触发落盘默认快照；杀进程重进后为默认状态）')
+	}
+</script>

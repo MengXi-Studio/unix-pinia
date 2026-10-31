@@ -1,38 +1,63 @@
-import type { ComputedRef } from 'vue'
-import { defineStore } from '@/uni_modules/ux-pinia'
-
 /**
- * counter store：基础示例（state / getter / action / 跨页面共享演示）
+ * counter store：基础能力演示（0.2.0 class 式架构）
  *
- * 类型导入规范：ComputedRef 编译器不全局注入，必须显式导入；Ref 建议统一显式导入。
+ * 形态要点：
+ * - class extends PiniaStoreBase：$patch/$reset/$subscribe/$dispose 由基类提供
+ * - state 用 reactive<T> 强类型包裹（字段为原始值，模板/脚本直接访问）
+ * - 派生值用 class getter（不推荐 computed 字段：5.34 下 effectScope 不可用，
+ *   computed 会绑定首次创建页面的作用域，跨页面后失效；getter 每次求值无此问题）
+ * - constructor 中 super() 后必须 bindState(this.state)
  */
-export type CounterStore = {
-  count: Ref<number>,
-  name: Ref<string>,
-  doubleCount: ComputedRef<number>,
-  increment: () => void,
-  setName: (n: string) => void,
-  reset: () => void
+import { reactive } from 'vue'
+import { defineStore, PiniaStoreBase } from '@/uni_modules/ux-pinia'
+
+export type CounterState = {
+	count: number
+	name: string
 }
 
-export const useCounterStore = defineStore<CounterStore>('counter', (): CounterStore => {
-  // state
-  const count: Ref<number> = ref(0)
-  const name: Ref<string> = ref('pinia')
-  // getter
-  const doubleCount: ComputedRef<number> = computed((): number => {
-    return count.value * 2
-  })
-  // action（UTS 函数声明不能作值传递，必须箭头函数表达式）
-  const increment = (): void => {
-    count.value++
-  }
-  const setName = (n: string): void => {
-    name.value = n
-  }
-  const reset = (): void => {
-    count.value = 0
-    name.value = 'pinia'
-  }
-  return { count: count, name: name, doubleCount: doubleCount, increment: increment, setName: setName, reset: reset } as CounterStore
-})
+export class CounterStore extends PiniaStoreBase {
+	// state 必须在依赖它的 getter 之前声明
+	state: CounterState = reactive<CounterState>({ count: 0, name: 'pinia' })
+
+	// 派生值：class getter（模板 {{ counter.doubleCount }}，依赖 state.count 自动更新）
+	get doubleCount(): number {
+		return this.state.count * 2
+	}
+
+	constructor() {
+		super()
+		this.bindState(this.state)
+	}
+
+	// actions = 普通 class method，直接修改 state
+	increment(): void {
+		this.state.count++
+	}
+
+	setName(n: string): void {
+		this.state.name = n
+	}
+
+	reset(): void {
+		this.state.count = 0
+		this.state.name = 'pinia'
+	}
+
+	// $reset 行为（Template Method 钩子，与 reset action 同逻辑）
+	override _doReset(): void {
+		this.reset()
+	}
+
+	// $patch / 持久化恢复装载（Template Method 钩子，字段级判空）
+	override _hydrate(data: UTSJSONObject): void {
+		if (data['count'] != null) {
+			this.state.count = data['count'] as number
+		}
+		if (data['name'] != null) {
+			this.state.name = data['name'] as string
+		}
+	}
+}
+
+export const useCounterStore = defineStore<CounterStore>('counter', (): CounterStore => new CounterStore())

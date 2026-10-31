@@ -37,6 +37,11 @@ export const routes: RouteConfig[] = [
 		meta: { title: '实例 API' },
 	},
 	{
+		path: 'pages-sub/persist/persist',
+		name: 'persist',
+		meta: { title: '持久化插件' },
+	},
+	{
 		path: 'pages-sub/plugin/plugin',
 		name: 'plugin',
 		meta: { title: '插件与 Pinia 实例' },

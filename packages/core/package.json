@@ -1,15 +1,17 @@
 {
 	"name": "@meng-xi/unix-pinia",
 	"type": "module",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"private": false,
-	"description": "为 uni-app x 提供 Pinia 风格的状态管理库（UTS 编写，setup 式，一套 API 多端覆盖）",
+	"description": "为 uni-app x 提供 Pinia 风格的状态管理与内置持久化（class + reactive 架构）",
 	"keywords": [
 		"@meng-xi/unix-pinia",
 		"meng-xi",
 		"unix-pinia",
 		"pinia",
-		"store"
+		"store",
+		"persist",
+		"storage"
 	],
 	"main": "utssdk/index.uts",
 	"module": "utssdk/index.uts",
@@ -19,8 +21,9 @@
 	},
 	"files": [
 		"utssdk",
-		"license.md",
-		"README.md"
+		"LICENSE",
+		"README.md",
+		"README-en.md"
 	],
 	"peerDependencies": {
 		"vue": ">=3.0.0"

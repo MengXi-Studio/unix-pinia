@@ -5,42 +5,65 @@
 </script>
 
 <style>
-	/* 全局样式（App.uvue style 对所有页面生效） */
-	.container {
+	/* 全局样式（App.uvue style 对所有页面生效，对齐 unix-ui playground 规范） */
+	.page {
 		flex: 1;
+		background-color: #f8f8f8;
+	}
+
+	/* 演示页内容滚动区（配合自绘导航骨架，固定头 + 独立滚动体） */
+	.page-body {
+		flex: 1;
+	}
+
+	.container {
 		flex-direction: column;
 		padding: 24rpx;
 	}
 
-	.intro {
+	.section {
+		font-size: 28rpx;
+		font-weight: bold;
+		color: #1a1a1a;
+		margin: 24rpx 0 12rpx 0;
+	}
+
+	.card {
 		flex-direction: column;
 		background-color: #ffffff;
 		border-radius: 16rpx;
 		padding: 24rpx;
+		margin-bottom: 16rpx;
 	}
 
-	.intro-title {
+	.card-title {
 		font-size: 28rpx;
 		font-weight: bold;
 		color: #1a1a1a;
 		margin-bottom: 8rpx;
 	}
 
-	.intro-text {
+	.card-desc {
 		font-size: 24rpx;
 		color: #666666;
 		line-height: 1.5em;
 	}
 
-	.section {
-		font-size: 26rpx;
-		color: #8a8f99;
-		margin: 28rpx 8rpx 12rpx 8rpx;
+	.card-line {
+		font-size: 28rpx;
+		color: #1a1a1a;
+		margin-bottom: 8rpx;
 	}
 
 	.row {
 		flex-direction: row;
 		flex-wrap: wrap;
+		align-items: center;
+	}
+
+	.row-gap {
+		margin-right: 16rpx;
+		margin-bottom: 16rpx;
 	}
 
 	.row-btn {
@@ -76,9 +99,4 @@
 		color: #333333;
 		margin-bottom: 6rpx;
 	}
-
-	.btn {
-		margin-bottom: 16rpx;
-	}
-
 </style>

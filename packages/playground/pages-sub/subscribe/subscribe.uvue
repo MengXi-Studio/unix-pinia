@@ -1,20 +1,23 @@
 <template>
-	<scroll-view style="flex:1">
+	<view class="page">
+		<demo-navbar title="状态订阅" subtitle="Subscribe" />
+		<demo-bridge />
+		<scroll-view class="page-body" :scroll-y="true">
 		<view class="container">
-			<view class="intro">
-				<text class="intro-title">功能说明</text>
-				<text class="intro-text">状态订阅使用字段级 watch（整体 $subscribe 已裁掉：deep watch 在 Android 端对 RefImpl 字段不触发，双端实测不一致）。watch 返回 stop 函数，调用后不再触发。进入页面自动运行。</text>
+			<view class="card">
+				<text class="card-title">功能说明</text>
+				<text class="card-desc">$subscribe 订阅状态变更（0.2.0 由 PiniaStoreBase 提供）：$patch / $reset / $save 触发，回调收到 type 与 _serialize 快照，返回取消函数。注意：direct 修改 state（含 increment 等 action 直接改字段）不触发——需要快照/落盘的场景显式调用 $save()。进入页面自动运行。</text>
 			</view>
 
 			<view class="card">
-				<text class="card-line">count: {{ count }}</text>
+				<text class="card-line">count: {{ counterStore.state.count }}</text>
 				<text class="card-line">已触发次数: {{ fired }}</text>
 			</view>
 
 			<text class="section">用例</text>
 			<view class="row">
 				<button class="row-btn" size="mini" @click="run">运行（订阅→触发→取消→复验）</button>
-				<button class="row-btn" size="mini" @click="counterStore.increment">increment</button>
+				<button class="row-btn" size="mini" @click="patchInc">$patch count+1（观察订阅）</button>
 			</view>
 
 			<view class="logs">
@@ -25,7 +28,8 @@
 				<text v-for="(line, index) in logs" :key="index" class="log">{{ line }}</text>
 			</view>
 		</view>
-	</scroll-view>
+		</scroll-view>
+	</view>
 </template>
 
 <script setup lang="uts">
@@ -35,12 +39,10 @@
 		name: 'subscribe'
 	})
 	import { ref } from 'vue'
-	import { storeToRefs } from '@/uni_modules/ux-pinia'
 	import { useCounterStore } from '@/stores/counter.uts'
-	import { mark, markEq } from '@/common/test-utils.uts'
+	import { markEq } from '@/common/test-utils.uts'
 
 	const counterStore = useCounterStore()
-	const { count } = storeToRefs(counterStore)
 
 	const fired = ref(0)
 	const logs = ref<Array<string>>([])
@@ -60,6 +62,10 @@
 
 	let stop: (() => void) | null = null
 
+	const patchInc = (): void => {
+		counterStore.$patch({ count: counterStore.state.count + 1 } as UTSJSONObject)
+	}
+
 	/** U1 状态订阅 */
 	function run(): void {
 		// 重复运行前先释放旧订阅（const 中转，避免闭包可变变量的 smart cast 限制）
@@ -70,47 +76,31 @@
 		}
 		fired.value = 0
 
-		// U1-1 注册字段级订阅
-		stop = watch(count, (newVal: number, oldVal: number): void => {
+		// U1-1 注册整体订阅（$patch/$reset/$save 触发）
+		stop = counterStore.$subscribe((type: string, state: UTSJSONObject): void => {
 			fired.value++
-			log('U1 watch 触发：' + oldVal.toString() + ' -> ' + newVal.toString() + '（第 ' + fired.value.toString() + ' 次）')
+			log('U1 订阅触发 type=' + type + ' 当前 count=' + counterStore.state.count.toString() + '（第 ' + fired.value.toString() + ' 次）')
 		})
-		log('U1-1 字段级 watch 已注册')
+		log('U1-1 $subscribe 已注册（$patch/$reset/$save 触发；direct 修改不触发）')
 
-		// U1-2 触发一次
-		counterStore.increment()
-		setTimeout((): void => {
-			log(markEq('U1-2 修改后回调触发', fired.value, 1))
+		// U1-2 $patch 触发一次（同步分发，partial 经 _hydrate 装载）
+		const next = counterStore.state.count + 1
+		counterStore.$patch({ count: next } as UTSJSONObject)
+		log(markEq('U1-2 $patch 后回调触发', fired.value, 1))
+		log(markEq('U1-2b $patch 装载 count', counterStore.state.count, next))
 
-			// U1-3 stop 取消后不再触发
-			const s = stop
-			if (s != null) {
-				s()
-				stop = null
-			}
-			counterStore.increment()
-			setTimeout((): void => {
-				log(markEq('U1-3 stop 后不再触发', fired.value, 1))
-			}, 200)
-		}, 200)
+		// U1-3 取消订阅后不再触发
+		const s = stop
+		if (s != null) {
+			s()
+			stop = null
+		}
+		counterStore.$patch({ count: counterStore.state.count + 1 } as UTSJSONObject)
+		log(markEq('U1-3 取消后不再触发', fired.value, 1))
+		log('说明：increment 等 action 为 direct 修改，不触发 $subscribe（UTS 无全局订阅钩子）')
 	}
 
 	onMounted((): void => {
 		run()
 	})
 </script>
-
-<style>
-	.card {
-		flex-direction: column;
-		background-color: #ffffff;
-		border-radius: 16rpx;
-		padding: 24rpx;
-	}
-
-	.card-line {
-		font-size: 28rpx;
-		color: #1a1a1a;
-		margin-bottom: 8rpx;
-	}
-</style>
