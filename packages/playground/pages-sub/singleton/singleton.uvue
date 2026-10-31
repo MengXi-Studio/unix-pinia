@@ -33,7 +33,7 @@
 		name: 'singleton'
 	})
 	import { ref } from 'vue'
-	import { defineStore, storeToRefs } from '@/uni_modules/ux-pinia'
+	import { defineStore } from '@/uni_modules/ux-pinia'
 	import { useCounterStore } from '@/stores/counter.uts'
 	import type { CounterStore } from '@/stores/counter.uts'
 	import { useUserStore } from '@/stores/user.uts'
@@ -62,19 +62,13 @@
 		log(mark('S1-1 同 id 两次 useStore 同一实例', a == b, 'a===b'))
 
 		// S1-2 同 id 重复 defineStore：幂等（控制台同步输出警告）
-		const dupUse = defineStore<CounterStore>('counter', (): CounterStore => {
-			const n: Ref<number> = ref(99)
-			const nName: Ref<string> = ref('dup')
-			const noop0 = (): void => {}
-			const noop1 = (n: string): void => {}
-			return { count: n, name: nName, doubleCount: a.doubleCount, increment: noop0, setName: noop1, reset: noop0 } as CounterStore
-		})
+		const dupUse = defineStore<CounterStore>('counter', (): CounterStore => new CounterStore())
 		const c = dupUse()
 		log(mark('S1-2 同 id 重复 defineStore 幂等', c == a, '返回既有实例（控制台有警告）'))
 
 		// S1-3 不同 id 相互独立
 		const u = useUserStore()
-		log(mark('S1-3 不同 id 各自独立', a != u, 'counter 与 user 为不同实例'))
+		log(mark('S1-3 不同 id 各自独立', a.$id != u.$id, "id='" + a.$id + "' 与 '" + u.$id + "' 为不同实例"))
 	}
 
 	onMounted((): void => {

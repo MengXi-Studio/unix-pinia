@@ -1,43 +1,64 @@
-import { ref } from 'vue'
-import type { Ref } from 'vue'
-import { defineStore } from '@/uni_modules/ux-pinia'
-import { persistedRef } from './persist-helper.uts'
-
 /**
- * persisted store：持久化演示（unix-pinia-persist 生态示范）
+ * persisted store：持久化演示（0.3.0 class 式架构 + 内置持久化插件）
  *
- * - pvCount：持久化字段（persistedRef 声明，存储键 'persist-demo.count'，默认 0）
- * - pvName：持久化字段（存储键 'persist-demo.name'，默认 'pinia'）
- * - tempValue：普通内存字段（对照项，杀进程后回默认）
+ * 持久化契约（Template Method）：
+ * - _serialize()：$patch/$reset/$save 触发落盘时的 state 快照（tempValue 故意不含——对照项）
+ * - _hydrate(data)：store 创建时插件读存储回填（字段级判空，损坏数据天然回退初始值）
+ * - tempValue 为普通内存字段（对照项，杀进程后回默认）
  */
-export type PersistedStore = {
-	pvCount: Ref<number>,
-	pvName: Ref<string>,
-	tempValue: Ref<string>,
-	add: () => void,
-	setName: (n: string) => void,
-	setTemp: (s: string) => void,
-	reset: () => void
+import { reactive } from 'vue'
+import { defineStore, PiniaStoreBase } from '@/uni_modules/ux-pinia'
+
+export type PersistedState = {
+	pvCount: number
+	pvName: string
+	tempValue: string
 }
 
-export const usePersistedStore = defineStore<PersistedStore>('persist-demo', (): PersistedStore => {
-	// 每字段一行约定：声明即持久化（恢复 + watch 落盘在 persistedRef 内组合插件存储原语）
-	const pvCount: Ref<number> = persistedRef('persist-demo', 'count', 0)
-	const pvName: Ref<string> = persistedRef('persist-demo', 'name', 'pinia')
-	const tempValue: Ref<string> = ref('temp-default')
-	const add = (): void => {
-		pvCount.value++
+export class PersistedStore extends PiniaStoreBase {
+	state: PersistedState = reactive<PersistedState>({ pvCount: 0, pvName: 'pinia', tempValue: 'temp-default' })
+
+	constructor() {
+		super()
+		this.bindState(this.state)
 	}
-	const setName = (n: string): void => {
-		pvName.value = n
+
+	add(): void {
+		this.state.pvCount++
 	}
-	const setTemp = (s: string): void => {
-		tempValue.value = s
+
+	setName(n: string): void {
+		this.state.pvName = n
 	}
-	const reset = (): void => {
-		pvCount.value = 0
-		pvName.value = 'pinia'
-		tempValue.value = 'temp-default'
+
+	setTemp(s: string): void {
+		this.state.tempValue = s
 	}
-	return { pvCount: pvCount, pvName: pvName, tempValue: tempValue, add: add, setName: setName, setTemp: setTemp, reset: reset } as PersistedStore
-})
+
+	reset(): void {
+		this.state.pvCount = 0
+		this.state.pvName = 'pinia'
+		this.state.tempValue = 'temp-default'
+	}
+
+	override _doReset(): void {
+		this.reset()
+	}
+
+	// 落盘快照：tempValue 不含（内存字段对照）
+	override _serialize(): UTSJSONObject {
+		return { pvCount: this.state.pvCount, pvName: this.state.pvName } as UTSJSONObject
+	}
+
+	// 恢复回填：字段级判空（存储损坏 / 字段缺失 → 保留初始值）
+	override _hydrate(data: UTSJSONObject): void {
+		if (data['pvCount'] != null) {
+			this.state.pvCount = data['pvCount'] as number
+		}
+		if (data['pvName'] != null) {
+			this.state.pvName = data['pvName'] as string
+		}
+	}
+}
+
+export const usePersistedStore = defineStore<PersistedStore>('persist-demo', (): PersistedStore => new PersistedStore())

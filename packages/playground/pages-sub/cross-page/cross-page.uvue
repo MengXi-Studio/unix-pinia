@@ -10,8 +10,8 @@
 			</view>
 
 			<view class="card">
-				<text class="card-line">当前 count: {{ count }}</text>
-				<text class="card-line">doubleCount: {{ doubleCount }}</text>
+				<text class="card-line">当前 count: {{ counterStore.state.count }}</text>
+				<text class="card-line">doubleCount: {{ counterStore.doubleCount }}</text>
 			</view>
 
 			<view class="row">
@@ -33,18 +33,16 @@
 		title: '跨页面共享（写入）',
 		name: 'cross-page'
 	})
-	import { storeToRefs } from '@/uni_modules/ux-pinia'
 	import { useCounterStore } from '@/stores/counter.uts'
 	import { setT1Expected } from '@/stores/testContext.uts'
 
 	const counterStore = useCounterStore()
-	const { count, doubleCount } = storeToRefs(counterStore)
 
 	const goVerify = (): void => {
 		counterStore.increment()
 		// T1 跨页面断言：记录离开本页时的状态，断言页比对（证明同一实例）
-		setT1Expected(counterStore.count.value)
-		console.log('[verify] T1 leave cross-page, count = ' + counterStore.count.value.toString())
+		setT1Expected(counterStore.state.count)
+		console.log('[verify] T1 leave cross-page, count = ' + counterStore.state.count.toString())
 		uni.navigateTo({ url: '/pages-sub/cross-verify/cross-verify' })
 	}
 </script>

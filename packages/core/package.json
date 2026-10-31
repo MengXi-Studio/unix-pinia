@@ -1,9 +1,9 @@
 {
 	"name": "@meng-xi/unix-pinia",
 	"type": "module",
-	"version": "0.2.0",
+	"version": "0.3.0",
 	"private": false,
-	"description": "为 uni-app x 提供 Pinia 风格的状态管理与持久化存储原语",
+	"description": "为 uni-app x 提供 Pinia 风格的状态管理与内置持久化（class + reactive 架构）",
 	"keywords": [
 		"@meng-xi/unix-pinia",
 		"meng-xi",

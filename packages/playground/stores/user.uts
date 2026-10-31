@@ -1,21 +1,33 @@
-import type { Ref } from 'vue'
-import { defineStore } from '@/uni_modules/ux-pinia'
+/**
+ * user store：跨 store 依赖演示（0.3.0 class 式架构）
+ *
+ * 跨 store 调用放在 method 内（不能放在字段初始化器——store 创建时机不可控）
+ */
+import { reactive } from 'vue'
+import { defineStore, PiniaStoreBase } from '@/uni_modules/ux-pinia'
 import { useCounterStore } from './counter.uts'
 
-/**
- * user store：验证跨 store 依赖（T5 用例）
- * 在 setup 内直接调用对方 useStore（注册表保证单例）
- */
-export type UserStore = {
-  score: Ref<number>,
-  addScoreFromCount: () => void
+export type UserState = {
+	score: number
 }
 
-export const useUserStore = defineStore<UserStore>('user', (): UserStore => {
-  const counterStore = useCounterStore()
-  const score: Ref<number> = ref(0)
-  const addScoreFromCount = (): void => {
-    score.value += counterStore.count.value
-  }
-  return { score, addScoreFromCount } as UserStore
-})
+export class UserStore extends PiniaStoreBase {
+	state: UserState = reactive<UserState>({ score: 0 })
+
+	constructor() {
+		super()
+		this.bindState(this.state)
+	}
+
+	// 跨 store 依赖：method 内直接调用对方 useStore()（注册表保证单例）
+	addScoreFromCount(): void {
+		const counterStore = useCounterStore()
+		this.state.score += counterStore.state.count
+	}
+
+	reset(): void {
+		this.state.score = 0
+	}
+}
+
+export const useUserStore = defineStore<UserStore>('user', (): UserStore => new UserStore())

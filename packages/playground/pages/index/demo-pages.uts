@@ -37,13 +37,13 @@ export const demoGroups: DemoGroup[] = [
 				name: 'basic',
 				zhName: '基础用法',
 				enName: 'Basic',
-				desc: 'defineStore / state / getter / action 与模板绑定'
+				desc: 'class 式 defineStore：state / getter / action 与模板绑定'
 			},
 			{
 				name: 'reactive',
 				zhName: '响应式矩阵',
 				enName: 'Reactive',
-				desc: 'reactive 解包行为 / 字段级 watch / isRef 实测'
+				desc: 'reactive state 直接修改的响应式 / getter 联动（class 式）'
 			}
 		]
 	},
@@ -60,7 +60,7 @@ export const demoGroups: DemoGroup[] = [
 				name: 'cross-store',
 				zhName: '跨 store 依赖',
 				enName: 'Cross Store',
-				desc: 'setup 内组合其他 store，action 联动修改'
+				desc: 'method 内组合其他 store，action 联动修改'
 			},
 			{
 				name: 'cross-page',
@@ -77,13 +77,13 @@ export const demoGroups: DemoGroup[] = [
 				name: 'instance-api',
 				zhName: '实例 API',
 				enName: 'Instance API',
-				desc: 'patch / getStoreId / dispose 重建'
+				desc: '$patch / $id / $dispose / $save 实例 API'
 			},
 			{
 				name: 'subscribe',
 				zhName: '状态订阅',
 				enName: 'Subscribe',
-				desc: '字段级 watch 订阅与取消（$subscribe 替代）'
+				desc: '$subscribe 整体订阅与取消（$patch/$reset/$save 触发）'
 			},
 			{
 				name: 'plugin',
@@ -95,7 +95,7 @@ export const demoGroups: DemoGroup[] = [
 				name: 'persist',
 				zhName: '持久化插件',
 				enName: 'Persist',
-				desc: 'persistRef 声明即持久化，watch 自动落盘，后端可替换'
+				desc: '内置持久化插件：_hydrate 恢复，$patch/$reset/$save 落盘，后端可替换'
 			}
 		]
 	}

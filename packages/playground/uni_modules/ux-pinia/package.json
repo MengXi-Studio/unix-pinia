@@ -1,8 +1,8 @@
 {
 	"id": "ux-pinia",
 	"displayName": "ux-pinia 为 uni-app x 提供 Pinia 风格状态管理与持久化",
-	"version": "0.2.0",
-	"description": "为 uni-app x 提供 Pinia 风格的状态管理（setup 式）与持久化存储原语（JSON 信封 + 后端可替换）",
+	"version": "0.3.0",
+	"description": "为 uni-app x 提供 Pinia 风格的状态管理（class 式 store）与内置持久化插件",
 	"keywords": [
 		"unix-pinia",
 		"ux-pinia",

@@ -6,13 +6,13 @@
 		<view class="container">
 			<view class="card">
 				<text class="card-title">功能说明</text>
-				<text class="card-desc">setup 式 defineStore：state 用 Ref、getter 用 ComputedRef、action 用箭头函数。脚本访问 state 需 .value（UTS 无 Proxy 不自动解包），模板经 storeToRefs 解构后自动解包。进入页面自动运行。</text>
+				<text class="card-desc">class 式 defineStore：class extends PiniaStoreBase，state 用 reactive&lt;T&gt; 强类型包裹、派生值用 class getter、action 为普通 method。模板直接 counter.state.count（响应式），脚本同路径。进入页面自动运行。</text>
 			</view>
 
 			<view class="card">
-				<text class="card-line">count: {{ count }}</text>
-				<text class="card-line">doubleCount: {{ doubleCount }}</text>
-				<text class="card-line">name: {{ name }}</text>
+				<text class="card-line">count: {{ counterStore.state.count }}</text>
+				<text class="card-line">doubleCount: {{ counterStore.doubleCount }}</text>
+				<text class="card-line">name: {{ counterStore.state.name }}</text>
 			</view>
 
 			<text class="section">用例</text>
@@ -43,12 +43,10 @@
 		name: 'basic'
 	})
 	import { ref } from 'vue'
-	import { storeToRefs } from '@/uni_modules/ux-pinia'
 	import { useCounterStore } from '@/stores/counter.uts'
 	import { markEq } from '@/common/test-utils.uts'
 
 	const counterStore = useCounterStore()
-	const { count, name, doubleCount } = storeToRefs(counterStore)
 
 	const logs = ref<Array<string>>([])
 
@@ -68,14 +66,14 @@
 	/** B1 基础用法 */
 	function run(): void {
 		counterStore.reset()
-		log('B1-1 初始 state count=' + counterStore.count.value.toString() + ' name=' + counterStore.name.value)
+		log('B1-1 初始 state count=' + counterStore.state.count.toString() + ' name=' + counterStore.state.name)
 		counterStore.increment()
-		log(markEq('B1-2 action 修改后 count', counterStore.count.value, 1))
-		log(markEq('B1-3 getter 派生 doubleCount=count*2', counterStore.doubleCount.value, counterStore.count.value * 2))
+		log(markEq('B1-2 action 修改后 count', counterStore.state.count, 1))
+		log(markEq('B1-3 getter 派生 doubleCount=count*2', counterStore.doubleCount, counterStore.state.count * 2))
 		counterStore.setName('unix-pinia')
-		log('B1-4 action 传参 setName → name=' + counterStore.name.value)
+		log('B1-4 action 传参 setName → name=' + counterStore.state.name)
 		counterStore.reset()
-		log(markEq('B1-5 reset 后 count', counterStore.count.value, 0))
+		log(markEq('B1-5 reset 后 count', counterStore.state.count, 0))
 		log('B1 用例完成，模板绑定实时联动（点 increment 观察）')
 	}
 
@@ -83,4 +81,3 @@
 		run()
 	})
 </script>
-

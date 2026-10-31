@@ -6,7 +6,7 @@
 		<view class="container">
 			<view class="card">
 				<text class="card-title">功能说明</text>
-				<text class="card-desc">createPinia 创建实例，setActivePinia 登记（main.uts 已顶层执行）；pinia.use 链式注册插件，store 首次创建时按序调度，PiniaPluginContext 携带 pinia / store / storeId。进入页面自动运行。</text>
+				<text class="card-desc">createPinia 创建实例，setActivePinia 登记（main.uts 已顶层执行）；pinia.use 链式注册插件，store 首次创建时按序调度，PiniaPluginContext 携带 pinia / store / storeId。ctx.store 为 PiniaStoreBase 子类实例，as 收窄后可用 $subscribe / $onAction。进入页面自动运行。</text>
 			</view>
 
 			<text class="section">用例</text>
@@ -34,7 +34,8 @@
 	})
 	import { ref } from 'vue'
 	import type { PiniaPluginContext } from '@/uni_modules/ux-pinia'
-	import { defineStore, getActivePinia, setActivePinia, createPinia, dispose } from '@/uni_modules/ux-pinia'
+	import { getActivePinia, PiniaStoreBase } from '@/uni_modules/ux-pinia'
+	import { usePluginProbeStore } from '@/stores/probe.uts'
 
 	const logs = ref<Array<string>>([])
 
@@ -51,14 +52,6 @@
 		logs.value.splice(0, logs.value.length)
 	}
 
-	// P8 专用测试 store：插件调度验证载体
-	type PluginProbeStore = {
-		tag: string
-	}
-	const usePluginProbeStore = defineStore<PluginProbeStore>('plugin-probe', (): PluginProbeStore => {
-		return { tag: 'probe' } as PluginProbeStore
-	})
-
 	/** P8 插件与 Pinia 实例 */
 	function run(): void {
 		// P8-1 active 实例已由 main.uts 顶层登记
@@ -70,14 +63,15 @@
 
 		// 先注销探针 store，保证本次 run 重新创建并调度插件
 		const stale = usePluginProbeStore()
-		dispose(stale)
+		stale.$dispose()
 
 		// P8-2 插件调度：注册 logger 后创建新 store，插件应收到 ctx
 		let receivedId = ''
 		let receivedStore = false
 		const logger = (ctx: PiniaPluginContext): void => {
 			receivedId = ctx.storeId
-			receivedStore = ctx.store != null
+			const base = ctx.store as PiniaStoreBase
+			receivedStore = base instanceof PiniaStoreBase
 		}
 
 		// P8-4 链式 use（noop 插件演示链式返回实例本身）
@@ -88,8 +82,8 @@
 		// 触发创建（重新创建时调度插件）
 		const probe = usePluginProbeStore()
 		log('P8-2 插件调度收到 storeId：' + (receivedId == 'plugin-probe' ? "pass ('" + receivedId + "')" : "FAIL ('" + receivedId + "')"))
-		log('P8-3 ctx.store 非空：' + (receivedStore ? 'pass' : 'FAIL'))
-		log('说明：插件返回 void（UTS 禁止向 store 注入属性），扩展逻辑通过 ctx.store 既有成员完成')
+		log('P8-3 ctx.store 为 PiniaStoreBase 子类实例：' + (receivedStore ? 'pass' : 'FAIL'))
+		log('说明：插件返回 void（UTS 禁止向 store 注入属性），扩展逻辑经 ctx.store as PiniaStoreBase 完成（$subscribe/$onAction）')
 	}
 
 	onMounted((): void => {

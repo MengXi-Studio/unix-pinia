@@ -6,13 +6,19 @@
 		<view class="container">
 			<view class="card">
 				<text class="card-title">功能说明</text>
-				<text class="card-desc">实测 reactive 对 Ref / ComputedRef 字段的行为：Web 端（JS Proxy）自动解包，Android 端（Kotlin 无 Proxy）保持 RefImpl 原样——unix-pinia 据此采用透传形态（方案 B），不依赖 reactive 解包。isRef 的返回即双端差异的直接证据，两种结果均为预期。进入页面自动运行。</text>
+				<text class="card-desc">0.3.0 class 式架构：store.state 本身就是 reactive&lt;T&gt; 强类型对象——脚本与模板同路径（counterStore.state.count）直接读写，修改即响应式更新。请勿再用 reactive() 包整个 store：UTS 无 Proxy，包装解包行为双端不一致，且 state 已内置 reactive 无此需求。进入页面自动运行。</text>
+			</view>
+
+			<view class="card">
+				<text class="card-line">count: {{ counterStore.state.count }}</text>
+				<text class="card-line">doubleCount: {{ counterStore.doubleCount }}</text>
+				<text class="card-line">name: {{ counterStore.state.name }}</text>
 			</view>
 
 			<text class="section">用例</text>
 			<view class="row">
 				<button class="row-btn" size="mini" @click="run">重新运行</button>
-				<button class="row-btn" size="mini" @click="incNum">num+1（观察 watch）</button>
+				<button class="row-btn" size="mini" @click="incNum">count+1（direct 修改，观察联动）</button>
 			</view>
 
 			<view class="logs">
@@ -33,8 +39,11 @@
 		title: '响应式矩阵',
 		name: 'reactive'
 	})
-	import type { Ref, ComputedRef } from 'vue'
 	import { ref } from 'vue'
+	import { useCounterStore } from '@/stores/counter.uts'
+	import { mark, markEq } from '@/common/test-utils.uts'
+
+	const counterStore = useCounterStore()
 
 	const logs = ref<Array<string>>([])
 
@@ -51,57 +60,33 @@
 		logs.value.splice(0, logs.value.length)
 	}
 
-	// 响应式矩阵验证对象：reactive 包装含 Ref / ComputedRef / 普通值字段的对象
-	type P3State = {
-		num: Ref<number>,
-		comp: ComputedRef<number>,
-		plain: string
-	}
-
-	const num = ref(11)
-	const comp = computed((): number => {
-		return 22
-	})
-	const raw: P3State = {
-		num: num,
-		comp: comp,
-		plain: 'plain-value'
-	}
-	const wrapped = reactive(raw)
-
 	const incNum = (): void => {
-		num.value++
+		// direct 修改 reactive 字段：模板 counterStore.state.count 自动联动
+		counterStore.state.count++
 	}
 
-	let watchFired = 0
-
-	// R1-6 字段级 watch（顶层注册，页面生命周期内有效）
-	watch(num, (newVal: number, oldVal: number): void => {
-		watchFired++
-		log('R1-6 watch 触发第 ' + watchFired.toString() + ' 次：' + oldVal.toString() + ' -> ' + newVal.toString())
-	})
-
-	/** R1 响应式矩阵 */
+	/** R1 reactive state 直接修改的响应式 */
 	function run(): void {
-		// R1-1 普通值字段（reactive 官方基线，双端一致）
-		wrapped.plain = 'changed'
-		log('R1-1 reactive 普通字段读写：' + (wrapped.plain == 'changed' ? 'pass' : 'FAIL'))
+		counterStore.reset()
+		// R1-1 direct 修改 reactive 字段（脚本与模板同路径，无 .value）
+		counterStore.state.count = 11
+		log(markEq('R1-1 direct 修改 state.count', counterStore.state.count, 11))
+		log('R1-1 模板 counterStore.state.count 应同步显示 11（reactive 属性代理自动更新）')
 
-		// R1-2 reactive + Ref 字段：isRef 结果即双端差异的直接证据
-		const aIsRef = isRef(wrapped.num)
-		log('R1-2 reactive+Ref isRef=' + (aIsRef ? 'true（Android 端预期：保持 RefImpl）' : 'false（Web 端预期：已解包）'))
+		// R1-2 getter 派生值随 reactive 字段联动
+		log(markEq('R1-2 getter doubleCount 联动', counterStore.doubleCount, 22))
 
-		// R1-3 响应联动：改原始 ref，wrapped 侧读数应联动（两种形态下引用相同）
-		num.value = 33
-		log('R1-3 原始 ref 改 33 后 wrapped.num=' + wrapped.num + '（联动即响应链路完好）')
+		// R1-3 direct 修改与 action 修改可混合（同一 reactive state）
+		counterStore.state.count++
+		counterStore.increment()
+		log(markEq('R1-3 direct++ 后 increment 累加', counterStore.state.count, 13))
 
-		// R1-4 reactive + ComputedRef 字段
-		const bIsRef = isRef(wrapped.comp)
-		log('R1-4 reactive+Computed isRef=' + (bIsRef ? 'true（Android 端预期）' : 'false（Web 端预期）') + ' value=' + wrapped.comp)
+		// R1-4 reactive 字符串字段 direct 修改
+		counterStore.state.name = 'reactive'
+		log(mark('R1-4 direct 修改 state.name', counterStore.state.name == 'reactive', "name='" + counterStore.state.name + "'"))
 
-		// R1-5 isRef 基线
-		const r5 = isRef(num) && isRef(comp) && !isRef(1)
-		log('R1-5 isRef 基线（ref=true computed=true 非ref=false）：' + (r5 ? 'pass' : 'FAIL'))
+		// R1-5 红线说明：不再需要 reactive() 包装 store
+		log('R1-5 说明：请勿再用 reactive() 包整个 store——store.state 已内置 reactive，0.2.0 的解包双端差异问题不复存在')
 	}
 
 	onMounted((): void => {

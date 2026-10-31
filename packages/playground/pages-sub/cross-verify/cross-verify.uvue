@@ -10,8 +10,8 @@
 			</view>
 
 			<view class="card">
-				<text class="card-line">count: {{ count }}</text>
-				<text class="card-line">doubleCount: {{ doubleCount }}</text>
+				<text class="card-line">count: {{ secondStore.state.count }}</text>
+				<text class="card-line">doubleCount: {{ secondStore.doubleCount }}</text>
 				<text class="card-line">{{ t1Result }}</text>
 			</view>
 
@@ -31,19 +31,17 @@
 		name: 'cross-verify'
 	})
 	import { ref } from 'vue'
-	import { storeToRefs } from '@/uni_modules/ux-pinia'
 	import { useCounterStore } from '@/stores/counter.uts'
 	import { getT1Expected } from '@/stores/testContext.uts'
 
 	const secondStore = useCounterStore()
-	const { count, doubleCount } = storeToRefs(secondStore)
 
 	const t1Result = ref('T1 断言: 待判定')
 
 	function assert(): void {
 		const expected = getT1Expected()
-		const actual = secondStore.count.value
-		const pass = actual == expected && secondStore.doubleCount.value == actual * 2
+		const actual = secondStore.state.count
+		const pass = actual == expected && secondStore.doubleCount == actual * 2
 		t1Result.value = 'T1 断言: ' + (pass ? 'pass（同一实例，状态与写入方一致）' : 'fail（actual=' + actual.toString() + ', expected=' + expected.toString() + '）')
 		console.log('[verify] T1 verify page count = ' + actual.toString() + ' expected = ' + expected.toString() + ' => ' + (pass ? 'PASS' : 'FAIL'))
 	}
@@ -60,7 +58,7 @@
 		assert()
 		// 演示跨页面修改：返回写入方后其视图应联动
 		secondStore.increment()
-		console.log('[verify] T1 verify page increment -> ' + secondStore.count.value.toString())
+		console.log('[verify] T1 verify page increment -> ' + secondStore.state.count.toString())
 	})
 </script>
 
