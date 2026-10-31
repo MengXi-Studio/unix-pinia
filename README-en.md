@@ -9,7 +9,7 @@
   </a>
   <br>
   <h1>@meng-xi/unix-pinia</h1>
-  <p>Pinia-style state management for uni-app x (strict UTS, setup stores, one API across platforms)</p>
+  <p>Pinia-style state management and persistence primitives for uni-app x (strict UTS, setup stores, one API across platforms)</p>
 
 [![license](https://img.shields.io/github/license/MengXi-Studio/unix-pinia.svg)](./license.md) [![npm](https://img.shields.io/npm/v/@meng-xi/unix-pinia?color=blue)](https://www.npmjs.com/package/@meng-xi/unix-pinia)
 ![npm](https://img.shields.io/npm/dt/@meng-xi/unix-pinia?color=green)
@@ -33,6 +33,7 @@ Design principle: replicate the Pinia API surface 1:1 and **prune what the platf
 - **Instance APIs as top-level functions** - `patch` / `dispose` / `getStoreId` mirror `$patch` / `$dispose` / `$id` (UTS has no Proxy, so methods cannot be attached to store objects)
 - **Cross-store dependencies** - call the other `useStore` inside setup; the registry guarantees singletons
 - **Plugin system** - chainable `pinia.use(plugin)` with `PiniaPluginContext` (`pinia` / `store` / `storeId`) matching standard Pinia
+- **Persistence primitives** - `loadPersisted` / `savePersisted` JSON-envelope serialization (`{ v }` with automatic fallback on corruption), `setStorageAdapter` for swappable backends; the host-project `persistedRef` helper makes fields persist on declaration (restore + field-level watch auto-save)
 - **Idempotent & predictable** - duplicate `defineStore` with the same id warns and returns the existing instance; after `dispose`, `useStore` rebuilds a fresh store
 - **Strictly typed UTS** - fully explicit annotations; the Kotlin generics-erasure boundary (`as any`) is contained inside the library, invisible to business code
 - **Verified on both platforms** - full test suite passes on Web (JS toolchain) and Android (Kotlin toolchain, real device) with identical behavior
@@ -133,8 +134,8 @@ The repo ships a demo app at [packages/playground](https://github.com/MengXi-Stu
 
 ## Exports
 
-- API: `defineStore` / `storeToRefs` / `createPinia` / `setActivePinia` / `getActivePinia` / `patch` / `dispose` / `getStoreId`
-- Types: `Pinia` / `PiniaPlugin` / `PiniaPluginContext` / `Unsubscribe` / `SubscribeCallback`
+- API: `defineStore` / `storeToRefs` / `createPinia` / `setActivePinia` / `getActivePinia` / `patch` / `dispose` / `getStoreId` / `loadPersisted` / `savePersisted` / `getStorageKey` / `setStorageAdapter`
+- Types: `Pinia` / `PiniaPlugin` / `PiniaPluginContext` / `Unsubscribe` / `SubscribeCallback` / `StorageAdapter`
 
 ## Documentation
 

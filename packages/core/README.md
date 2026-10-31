@@ -9,7 +9,7 @@
   </a>
   <br>
   <h1>@meng-xi/unix-pinia</h1>
-  <p>为 uni-app x 提供 Pinia 风格的状态管理库（UTS 编写，setup 式，一套 API 多端覆盖）</p>
+  <p>为 uni-app x 提供 Pinia 风格的状态管理与持久化存储原语（UTS 编写，setup 式，一套 API 多端覆盖）</p>
 
 [![license](https://img.shields.io/github/license/MengXi-Studio/unix-pinia.svg)](./license.md) [![npm](https://img.shields.io/npm/v/@meng-xi/unix-pinia?color=blue)](https://www.npmjs.com/package/@meng-xi/unix-pinia)
 ![npm](https://img.shields.io/npm/dt/@meng-xi/unix-pinia?color=green)
@@ -33,6 +33,7 @@ uni-app x 的 **vdom 模式 App 原生端**无法使用标准 Pinia（蒸汽模�
 - **实例 API 顶层函数映射** - `patch` / `dispose` / `getStoreId` 对应 `$patch` / `$dispose` / `$id`（UTS 无 Proxy，无法在 store 对象上挂方法）
 - **跨 store 依赖** - setup 内直接调用对方 `useStore`，注册表保证单例
 - **插件体系** - `pinia.use(plugin)` 链式注册，`PiniaPluginContext`（`pinia` / `store` / `storeId`）对齐标准 Pinia 三字段
+- **持久化存储原语** - `loadPersisted` / `savePersisted` JSON 信封序列化（`{ v }`，损坏自动回退默认值），`setStorageAdapter` 后端可替换；主工程 `persistedRef` helper 声明即持久化（恢复 + 字段级 watch 自动落盘）
 - **幂等与可预测** - 同 id 重复 `defineStore` 警告并返回既有实例；`dispose` 后 `useStore` 重建全新实例
 - **强类型 UTS** - 全量显式类型标注；Kotlin 泛型擦除边界（`as any`）已在库内收敛，业务侧零感知
 - **双端实测** - Web（JS 编译链）与 Android（Kotlin 编译链、真机）全用例通过，双端行为一致
@@ -117,6 +118,35 @@ import { createPinia, setActivePinia } from '@/uni_modules/ux-pinia'
 setActivePinia(createPinia().use(myPlugin))
 ```
 
+### 5. 持久化字段（声明即持久化）
+
+先在主工程定义一次 helper（`stores/persist-helper.uts`，vue API 需在主工程编译路径使用——5.34 编译器实证：UTS 插件内 vue 符号的 Kotlin import 生成失效）：
+
+```uts
+// stores/persist-helper.uts
+import { ref, watch } from 'vue'
+import type { Ref } from 'vue'
+import { loadPersisted, savePersisted } from '@/uni_modules/ux-pinia'
+
+/** 持久化字段：恢复初值 + 字段级 watch 自动落盘 */
+export function persistedRef<T>(storeId: string, key: string, defaultValue: T): Ref<T> {
+	const saved: any | null = loadPersisted(storeId, key)
+	const r: Ref<T> = ref(saved != null ? (saved as T) : defaultValue) as Ref<T>
+	watch(r, (nv: any, ov: any): void => {
+		savePersisted(storeId, key, nv)
+	})
+	return r
+}
+```
+
+store 内每字段一行：
+
+```uts
+const token: Ref<string> = persistedRef('user', 'token', '')  // ← 每字段一行
+
+// action 不用管落盘；换后端用 setStorageAdapter({ get, set })（默认 uni storage）
+```
+
 ### 运行效果
 
 仓库自带示例工程 [packages/playground](https://github.com/MengXi-Studio/unix-pinia/tree/master/packages/playground)，进入首页自动运行全部验证用例（响应式矩阵 / 单例跨页面 / patch / 双 store 互调 / 幂等 / dispose 重建），以 `[verify]` 前缀输出日志并在页面直接显示 pass/fail。示例工程为纯 HBuilderX 工程，用 HBuilderX 打开 `packages/playground` 即可发行 Web / Android，复验同一组用例。
@@ -138,8 +168,8 @@ setActivePinia(createPinia().use(myPlugin))
 
 ## 导出
 
-- API：`defineStore` / `storeToRefs` / `createPinia` / `setActivePinia` / `getActivePinia` / `patch` / `dispose` / `getStoreId`
-- 类型：`Pinia` / `PiniaPlugin` / `PiniaPluginContext` / `Unsubscribe` / `SubscribeCallback`
+- API：`defineStore` / `storeToRefs` / `createPinia` / `setActivePinia` / `getActivePinia` / `patch` / `dispose` / `getStoreId` / `loadPersisted` / `savePersisted` / `getStorageKey` / `setStorageAdapter`
+- 类型：`Pinia` / `PiniaPlugin` / `PiniaPluginContext` / `Unsubscribe` / `SubscribeCallback` / `StorageAdapter`
 
 ## 文档
 

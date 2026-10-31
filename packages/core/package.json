@@ -1,15 +1,17 @@
 {
 	"name": "@meng-xi/unix-pinia",
 	"type": "module",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"private": false,
-	"description": "为 uni-app x 提供 Pinia 风格的状态管理库",
+	"description": "为 uni-app x 提供 Pinia 风格的状态管理与持久化存储原语",
 	"keywords": [
 		"@meng-xi/unix-pinia",
 		"meng-xi",
 		"unix-pinia",
 		"pinia",
-		"store"
+		"store",
+		"persist",
+		"storage"
 	],
 	"main": "utssdk/index.uts",
 	"module": "utssdk/index.uts",

@@ -6,7 +6,7 @@
 		<view class="container">
 			<view class="card">
 				<text class="card-title">功能说明</text>
-				<text class="card-desc">unix-pinia-persist 生态示范：persistedRef 声明即持久化（声明时从存储恢复初始值并挂接字段级 watch 自动落盘）；tempValue 为普通内存字段（对照项）。修改后直接读存储验证落盘；杀进程重进可验证恢复。进入页面自动运行。</text>
+				<text class="card-desc">ux-pinia 0.2.0 持久化示范：persistedRef 声明即持久化（声明时从存储恢复初始值并挂接字段级 watch 自动落盘）；tempValue 为普通内存字段（对照项）。修改后直接读存储验证落盘；杀进程重进可验证恢复。进入页面自动运行。</text>
 			</view>
 
 			<view class="card">

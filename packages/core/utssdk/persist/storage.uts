@@ -1,12 +1,17 @@
 /**
- * 存储层（实现层，纯存储原语——零 vue 符号）
+ * 持久化存储层（实现层，纯存储原语——零 vue 符号）
  *
  * JSON 信封序列化（{ v: 值 }）——规避 uni storage 未命中返回空串与合法空值
- * 的歧义，损坏数据 parse 失败自动回退默认值；后端可经 setStorageAdapterImpl 替换。
+ * 的歧义，损坏数据 parse 失败由调用方回退默认值；后端可经 setStorageAdapterImpl 替换。
+ *
+ * 归属说明（0.2.0 合并）：原独立包 @meng-xi/unix-pinia-persist（ux-pinia-persist）
+ * 经 HBuilderX 5.34 编译器实证重构为纯存储原语（UTS 插件内 vue 符号的 Kotlin import
+ * 生成失效），失去插件形态后并入 core——持久化是状态管理的伴生能力，单包交付。
+ * 响应式接入（ref 创建 / watch 落盘）由使用方在 store setup（主工程编译路径）组合，
+ * 推荐主工程侧封装 persistedRef 辅助函数（示例工程 stores/persist-helper.uts）。
  *
  * Kotlin 红线（云打包 release 实证，HBuilderX 5.34）：
- * - 零 vue 符号：5.34 编译器对 UTS 插件内 vue 符号（Ref/ref/watch）的 Kotlin import
- *   生成失效（源码 import 亦被忽略）→ Unresolved；插件保持零 vue 依赖与 core 同构
+ * - 零 vue 符号：vue 符号的 Kotlin import 生成失效，插件内保持零 vue 依赖
  * - uni.getStorageSync 返回 Any?：any 声明必须带 | null
  * - 适配器 lambda 内不做单步 Any?→String? 强转，分步显式标注
  * - 函数作值必须箭头 const 表达式（function 声明不能作值传递）

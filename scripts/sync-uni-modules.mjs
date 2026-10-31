@@ -1,18 +1,18 @@
 /**
- * 同步各 UTS 插件包到 playground / 其他 uni-app x 工程（多包映射）
+ * 同步 core 插件包到 playground / 其他 uni-app x 工程
  *
  * 用法：
  *   node scripts/sync-uni-modules.mjs           # 复制（增量覆盖）
  *   node scripts/sync-uni-modules.mjs --check   # 仅校验一致性（CI / precommit）
  *
- * 原理：packages/* 各包本身就是标准 uni_modules UTS 插件目录（utssdk/ 结构），
- * 复制为 playground/uni_modules/<id>；HBuilderX 编译只扫描工程 uni_modules/
+ * 原理：packages/core 本身就是标准 uni_modules UTS 插件目录（utssdk/ 结构），
+ * 复制为 playground/uni_modules/ux-pinia；HBuilderX 编译只扫描工程 uni_modules/
  * 目录，node_modules 内的 UTS 插件不被识别。
  *
  * 注意：插件目录名必须为 uni_modules id（npm 包名 @meng-xi/unix-pinia →
- * ux-pinia、@meng-xi/unix-pinia-persist → ux-pinia-persist）；
- * dest 侧 package.json、changelog.md、README.md 为 playground 侧手工维护
- * （DCloud 插件市场要求的 id 与格式同 npm 包不同），同步时保留、不参与复制与校验。
+ * ux-pinia）；dest 侧 package.json、changelog.md、README.md 为 playground 侧
+ * 手工维护（DCloud 插件市场要求的 id 与格式同 npm 包不同），同步时保留、
+ * 不参与复制与校验。
  */
 import { cpSync, existsSync, rmSync, readdirSync, statSync, readFileSync } from 'node:fs'
 import { join, dirname, resolve } from 'node:path'
@@ -21,10 +21,9 @@ import { createHash } from 'node:crypto'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 
-/** 同步映射：包目录 → playground uni_modules 插件 id */
+/** 同步映射：包目录 → playground uni_modules 插件 id（保留数组结构，便于未来插件扩展） */
 const targets = [
-	{ src: 'packages/core', dest: 'packages/playground/uni_modules/ux-pinia', label: 'ux-pinia' },
-	{ src: 'packages/persist', dest: 'packages/playground/uni_modules/ux-pinia-persist', label: 'ux-pinia-persist' }
+	{ src: 'packages/core', dest: 'packages/playground/uni_modules/ux-pinia', label: 'ux-pinia' }
 ]
 
 /** 插件目录同步这些内容（UTS 插件源码 + 开源协议文件）；

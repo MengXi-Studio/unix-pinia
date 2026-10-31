@@ -9,7 +9,7 @@
   </a>
   <br>
   <h1>@meng-xi/unix-pinia</h1>
-  <p>Pinia-style state management for uni-app x (strict UTS, setup stores, one API across platforms)</p>
+  <p>Pinia-style state management and persistence primitives for uni-app x (strict UTS, setup stores, one API across platforms)</p>
 
 [![license](https://img.shields.io/github/license/MengXi-Studio/unix-pinia.svg)](./license.md) [![npm](https://img.shields.io/npm/v/@meng-xi/unix-pinia?color=blue)](https://www.npmjs.com/package/@meng-xi/unix-pinia)
 ![npm](https://img.shields.io/npm/dt/@meng-xi/unix-pinia?color=green)
@@ -33,6 +33,7 @@ Design principle: replicate the Pinia API surface 1:1 and **prune what the platf
 - **Instance APIs as top-level functions** - `patch` / `dispose` / `getStoreId` mirror `$patch` / `$dispose` / `$id` (UTS has no Proxy, so methods cannot be attached to store objects)
 - **Cross-store dependencies** - call the other `useStore` inside setup; the registry guarantees singletons
 - **Plugin system** - chainable `pinia.use(plugin)` with `PiniaPluginContext` (`pinia` / `store` / `storeId`) matching standard Pinia
+- **Persistence primitives** - `loadPersisted` / `savePersisted` JSON-envelope serialization (`{ v }` with automatic fallback on corruption), `setStorageAdapter` for swappable backends; the host-project `persistedRef` helper makes fields persist on declaration (restore + field-level watch auto-save)
 - **Idempotent & predictable** - duplicate `defineStore` with the same id warns and returns the existing instance; after `dispose`, `useStore` rebuilds a fresh store
 - **Strictly typed UTS** - fully explicit annotations; the Kotlin generics-erasure boundary (`as any`) is contained inside the library, invisible to business code
 - **Verified on both platforms** - full test suite passes on Web (JS toolchain) and Android (Kotlin toolchain, real device) with identical behavior
@@ -118,6 +119,35 @@ import { createPinia, setActivePinia } from '@/uni_modules/ux-pinia'
 setActivePinia(createPinia().use(myPlugin))
 ```
 
+### 5. Persisted fields (declare it and it persists)
+
+Define the helper once in the host project (`stores/persist-helper.uts`; vue APIs must live on the host-project compile path — proven by HBuilderX 5.34: Kotlin import generation for vue symbols inside UTS plugins fails):
+
+```uts
+// stores/persist-helper.uts
+import { ref, watch } from 'vue'
+import type { Ref } from 'vue'
+import { loadPersisted, savePersisted } from '@/uni_modules/ux-pinia'
+
+/** Persisted field: restore initial value + field-level watch auto-save */
+export function persistedRef<T>(storeId: string, key: string, defaultValue: T): Ref<T> {
+	const saved: any | null = loadPersisted(storeId, key)
+	const r: Ref<T> = ref(saved != null ? (saved as T) : defaultValue) as Ref<T>
+	watch(r, (nv: any, ov: any): void => {
+		savePersisted(storeId, key, nv)
+	})
+	return r
+}
+```
+
+One line per field in your store:
+
+```uts
+const token: Ref<string> = persistedRef('user', 'token', '')  // ← one line per field
+
+// actions never worry about saving; swap backends with setStorageAdapter({ get, set }) (uni storage by default)
+```
+
 ### Verification
 
 The repo ships a demo app at [packages/playground](https://github.com/MengXi-Studio/unix-pinia/tree/master/packages/playground). Its home page auto-runs the full suite (reactivity matrix / cross-page singleton / patch / dual-store calls / idempotency / dispose-rebuild), logs with a `[verify]` prefix and renders pass/fail on the page. It is a plain HBuilderX project — open `packages/playground` in HBuilderX to release Web / Android and re-run the same suite.
@@ -133,8 +163,8 @@ The repo ships a demo app at [packages/playground](https://github.com/MengXi-Stu
 
 ## Exports
 
-- API: `defineStore` / `storeToRefs` / `createPinia` / `setActivePinia` / `getActivePinia` / `patch` / `dispose` / `getStoreId`
-- Types: `Pinia` / `PiniaPlugin` / `PiniaPluginContext` / `Unsubscribe` / `SubscribeCallback`
+- API: `defineStore` / `storeToRefs` / `createPinia` / `setActivePinia` / `getActivePinia` / `patch` / `dispose` / `getStoreId` / `loadPersisted` / `savePersisted` / `getStorageKey` / `setStorageAdapter`
+- Types: `Pinia` / `PiniaPlugin` / `PiniaPluginContext` / `Unsubscribe` / `SubscribeCallback` / `StorageAdapter`
 
 ## Documentation
 

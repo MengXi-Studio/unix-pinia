@@ -18,13 +18,14 @@ import { createPiniaImpl, setActivePiniaImpl, getActivePiniaImpl } from './pinia
 import { defineStoreImpl } from './pinia/defineStore.uts'
 import { storeToRefsImpl } from './pinia/storeToRefs.uts'
 import { patchImpl, disposeImpl, getStoreIdImpl } from './pinia/instanceApi.uts'
+import { loadValue, saveValue, setStorageAdapterImpl, storageKeyOf } from './persist/storage.uts'
 
 /**
  * 对外类型转发（同目录 interface.uts，非跨级 re-export）：
  * 消费方 import type { PiniaPlugin } from '@/uni_modules/ux-pinia'
  * 须经本入口解析；Pinia class（pinia/pinia.uts）作类型标注转发。
  */
-export type { Unsubscribe, SubscribeCallback, PiniaPlugin, PiniaPluginContext } from './interface.uts'
+export type { Unsubscribe, SubscribeCallback, PiniaPlugin, PiniaPluginContext, StorageAdapter } from './interface.uts'
 export type { Pinia } from './pinia/pinia.uts'
 
 /* ============ 定义与使用（export function 具名声明） ============ */
@@ -91,4 +92,42 @@ export function dispose<T>(store: T): void {
  */
 export function getStoreId<T>(store: T): string {
 	return getStoreIdImpl<T>(store)
+}
+
+/* ============ 持久化存储原语（0.2.0 并入，原 ux-pinia-persist） ============ */
+
+/**
+ * 读取持久化值（JSON 信封解包）：未命中 / 存储损坏返回 null（调用方回退默认值）。
+ * 典型用法（store setup 内）：`const saved = loadPersisted(id, key); const s = ref(saved != null ? saved as T : fallback)`
+ *
+ * @param storeId 所属 store 的 id（与 defineStore 的 id 一致）
+ * @param key 字段存储键（完整键 = 前缀 + storeId + '.' + key）
+ * @returns 解包后的值（any：调用方按字段类型 as 收窄），未命中返回 null
+ */
+export function loadPersisted(storeId: string, key: string): any | null {
+	return loadValue(storeId, key)
+}
+
+/**
+ * 写入持久化值（JSON 信封封装）：store setup 内字段级 watch 的落盘回调调用。
+ *
+ * @param value 字段值（any：Kotlin 泛型擦除边界，调用方传具体类型值即可）
+ */
+export function savePersisted(storeId: string, key: string, value: any): void {
+	saveValue(storeId, key, value)
+}
+
+/**
+ * 组完整存储键（`ux-pinia-persist:<storeId>.<key>`）：调用方直读存储验证 / 调试时拼键用。
+ */
+export function getStorageKey(storeId: string, key: string): string {
+	return storageKeyOf(storeId, key)
+}
+
+/**
+ * 替换存储后端（可选）。默认基于 uni.getStorageSync / uni.setStorageSync；
+ * 换 unix-storage / 原生 preferences 时实现 StorageAdapter，并在首次读写字段前调用。
+ */
+export function setStorageAdapter(next: StorageAdapter): void {
+	setStorageAdapterImpl(next)
 }

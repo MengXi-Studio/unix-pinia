@@ -36,3 +36,15 @@ export type PiniaPluginContext = {
  * 注意 UTS 函数类型必须用箭头语法。
  */
 export type PiniaPlugin = (ctx: PiniaPluginContext) => void
+
+/**
+ * 存储适配器（持久化，0.2.0 并入）：让使用者自选持久化后端
+ * （unix-storage / uni storage / 原生 preferences）。
+ * 默认实现基于 uni.getStorageSync / uni.setStorageSync（零依赖）。
+ */
+export type StorageAdapter = {
+	/** 读取原始字符串；未命中返回 null */
+	get: (key: string) => string | null
+	/** 写入原始字符串 */
+	set: (key: string, value: string) => void
+}

@@ -2,19 +2,20 @@
 
 # ux-pinia
 
-为 uni-app x 提供 Pinia 风格的状态管理（UTS 编写，setup 式，一套 API 多端覆盖）。
+为 uni-app x 提供 Pinia 风格的状态管理与持久化存储原语（UTS 编写，setup 式，一套 API 多端覆盖）。
 
 **ux-pinia** 是开源项目 [unix-pinia](https://github.com/MengXi-Studio/unix-pinia) 的 uni_modules 插件发行版（npm 包名
-[`@meng-xi/unix-pinia`](https://www.npmjs.com/package/@meng-xi/unix-pinia)），把标准 Pinia 的使用习惯完整搬到 UTS：setup 式 `defineStore`、`storeToRefs` 模板绑定、`patch` / `dispose` 实例 API、字段级订阅与插件体系，填补 **vdom 模式 App 原生端无法使用标准 Pinia** 的空缺。
+[`@meng-xi/unix-pinia`](https://www.npmjs.com/package/@meng-xi/unix-pinia)），把标准 Pinia 的使用习惯完整搬到 UTS：setup 式 `defineStore`、`storeToRefs` 模板绑定、`patch` / `dispose` 实例 API、字段级订阅与插件体系，填补 **vdom 模式 App 原生端无法使用标准 Pinia** 的空缺；0.2.0 并入持久化存储原语（JSON 信封 + 后端可替换），装一个插件即得状态管理 + 持久化完整能力。
 
 ## 特性
 
 - **setup 式 defineStore**：state 用 `Ref`、getter 用 `ComputedRef`、action 用箭头函数，与 Pinia 官方推荐写法一致；返回类型显式 `type` 标注，编辑器全程提示
 - **免挂载单例**：模块级注册表保证应用级单例，跨页面共享状态；纯状态管理零挂载代码
 - **实例 API 顶层函数映射**：`patch` / `dispose` / `getStoreId` 对应 `$patch` / `$dispose` / `$id`（UTS 无 Proxy，无法在 store 对象上挂方法）
+- **持久化存储原语**：`loadPersisted` / `savePersisted` JSON 信封序列化（`{ v }`，损坏自动回退默认值），`setStorageAdapter` 后端可替换；主工程 `persistedRef` helper 声明即持久化
 - **跨 store 依赖**：setup 内直接调用对方 `useStore`，注册表保证单例
-- **插件体系**：`pinia.use(plugin)` 链式注册，`PiniaPluginContext`（`pinia` / `store` / `storeId`）对齐标准 Pinia 三字段；配套持久化插件 ux-pinia-persist
-- **强类型 UTS**：全量显式类型标注；Kotlin 泛型擦除边界已在库内收敛，业务侧零感知
+- **插件体系**：`pinia.use(plugin)` 链式注册，`PiniaPluginContext`（`pinia` / `store` / `storeId`）对齐标准 Pinia 三字段
+- **强类型 UTS**：全量显式类型标注；Kotlin 泛型擦除与可空性边界已在库内收敛，业务侧零感知
 
 ## 平台兼容性
 
@@ -66,6 +67,37 @@ store.count.value++                                // 脚本访问 state：.valu
 
 > 纯状态管理无需任何挂载代码；需要插件调度时在 main.uts 顶层 `setActivePinia(createPinia().use(myPlugin))`（P8 实测：原生端 `app.use` 不触发 install）。
 
+### 4. 持久化字段（声明即持久化）
+
+先在主工程定义一次 helper（`stores/persist-helper.uts`，vue API 需在主工程编译路径使用）：
+
+```uts
+import { ref, watch } from 'vue'
+import type { Ref } from 'vue'
+import { loadPersisted, savePersisted } from '@/uni_modules/ux-pinia'
+
+/** 持久化字段：恢复初值 + 字段级 watch 自动落盘 */
+export function persistedRef<T>(storeId: string, key: string, defaultValue: T): Ref<T> {
+	const saved: any | null = loadPersisted(storeId, key)
+	const r: Ref<T> = ref(saved != null ? (saved as T) : defaultValue) as Ref<T>
+	watch(r, (nv: any, ov: any): void => {
+		savePersisted(storeId, key, nv)
+	})
+	return r
+}
+```
+
+store 内每字段一行：
+
+```uts
+const token: Ref<string> = persistedRef('user', 'token', '')  // ← 每字段一行
+```
+
+- **恢复**：创建 ref 时即从存储读初始值（未命中或损坏数据自动回退默认值）
+- **落盘**：内建字段级 watch，值变化即写存储（应用级生命周期，无需挂接任何插件）
+- **换后端**：`setStorageAdapter({ get, set })` 在首次读写字段前调用
+- **调试**：`getStorageKey('user', 'token')` 组出完整键 `ux-pinia-persist:user.token` 直查存储
+
 ## API 清单
 
 | API | 说明 |
@@ -76,6 +108,10 @@ store.count.value++                                // 脚本访问 state：.valu
 | patch | 批量修改：`patch(store, (s) => { ... })`（≙ `$patch`，仅 mutator 形态） |
 | dispose | 注销实例，下次 useStore 重建（≙ `$dispose`） |
 | getStoreId | 反查 store id（≙ `$id`） |
+| loadPersisted | 读取持久化值（JSON 信封解包），未命中 / 损坏返回 null |
+| savePersisted | 写入持久化值（JSON 信封封装） |
+| getStorageKey | 组完整存储键（`ux-pinia-persist:<storeId>.<key>`） |
+| setStorageAdapter | 替换存储后端（默认 uni storage，可换 unix-storage / 原生 preferences） |
 
 ## 文档与演示
 
@@ -84,6 +120,11 @@ store.count.value++                                // 脚本访问 state：.valu
 - 📱 Android 真机体验：[下载演示 App（APK）](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1793386392738-__UNI__0AA2919_1793386383661.apk)
 
 ## 更新记录
+
+### 0.2.0（2026-10-31）
+
+- 持久化存储原语并入（原独立插件 ux-pinia-persist）：loadPersisted / savePersisted / getStorageKey / setStorageAdapter + StorageAdapter 类型
+- 蒸汽模式（vapor）云打包验证通过
 
 ### 0.1.0（2026-10-17）
 

@@ -1,3 +1,15 @@
+## 0.2.0（2026-10-31）
+
+### 新增
+
+- **持久化存储原语并入**（原独立插件 ux-pinia-persist）：`loadPersisted` / `savePersisted`（JSON 信封 `{ v }` 序列化，未命中 / 损坏回退默认值）、`getStorageKey`（键拼接）、`setStorageAdapter` + `StorageAdapter` 类型（后端可替换）
+- 免挂载设计不变：持久化经主工程 `persistedRef` helper 组合恢复与字段级 watch 自动落盘（vue API 收拢在使用方编译路径，5.34 编译器实证的稳态架构）
+- 蒸汽模式（vapor）云打包验证通过
+
+### 变更
+
+- npm 包版本对齐 0.2.0；原 `@meng-xi/unix-pinia-persist` 独立包取消发布（未曾发布 npm），其定位（生态示范插件）因持久化重构为纯存储原语而消解
+
 ## 0.1.0（2026-10-18）
 
 首个公开版本。
