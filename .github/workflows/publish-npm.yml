@@ -103,7 +103,7 @@ jobs:
           echo "- **Auth**: OIDC Trusted Publisher (tokenless)" >> $GITHUB_STEP_SUMMARY # 认证方式
           echo "- **Provenance**: ✅ Signed with Sigstore" >> $GITHUB_STEP_SUMMARY # 签名状态
           echo "- **Commit**: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY # 关联的 commit SHA
-          echo "- **Environment**: \`unix-utils\`" >> $GITHUB_STEP_SUMMARY # 关联的 GitHub Environment
+          echo "- **Environment**: \`unix-pinia\`" >> $GITHUB_STEP_SUMMARY # 关联的 GitHub Environment
 
       # 步骤9：跳过发布摘要，写入 GitHub Actions Summary 页面
       - name: Skip publish summary
