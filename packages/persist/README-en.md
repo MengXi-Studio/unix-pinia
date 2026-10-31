@@ -112,7 +112,7 @@ setStorageAdapter({
 
 The bundled playground ([packages/playground](https://github.com/MengXi-Studio/unix-pinia/tree/master/packages/playground)) verifies the full chain on its "Persist" page with test cases PS1-1 ~ PS1-5 (auto-save on change / direct storage read to verify the envelope / in-memory field as the negative control / startup restore), logging with a `[verify]` prefix and rendering pass/fail right on the page. Open `packages/playground` in HBuilderX to build for Web / Android and re-run the same suite.
 
-**Android demo build (cloud-packaged)**: [Download APK](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1792298656822-__UNI__0AA2919_1792298648182.apk) (vdom mode; open the "Persist" page to see the PS1 results)
+**Android demo build (cloud-packaged)**: [Download APK](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1793386392738-__UNI__0AA2919_1793386383661.apk) (vapor mode; open the "Persist" page to see the PS1 results)
 
 **Cross-platform results**: all test cases pass on Web; the Android plugin is isomorphic with ux-pinia core (zero vue symbols on the Kotlin compile chain), pending on-device re-verification.
 

@@ -122,7 +122,7 @@ setActivePinia(createPinia().use(myPlugin))
 
 The repo ships a demo app at [packages/playground](https://github.com/MengXi-Studio/unix-pinia/tree/master/packages/playground). Its home page auto-runs the full suite (reactivity matrix / cross-page singleton / patch / dual-store calls / idempotency / dispose-rebuild), logs with a `[verify]` prefix and renders pass/fail on the page. It is a plain HBuilderX project — open `packages/playground` in HBuilderX to release Web / Android and re-run the same suite.
 
-**Android demo APK (cloud build)**: [Download APK](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1792298656822-__UNI__0AA2919_1792298648182.apk) (vdom mode; open each feature page to see the `[verify]` results)
+**Android demo APK (cloud build)**: [Download APK](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1793386392738-__UNI__0AA2919_1793386383661.apk) (vapor mode; open each feature page to see the `[verify]` results)
 
 **Verified on both platforms**: all cases pass on Web and on an Android real device (Kotlin toolchain) with identical behavior; iOS / HarmonyOS share the same codebase, pending on-device testing.
 

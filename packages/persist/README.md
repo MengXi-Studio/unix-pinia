@@ -112,7 +112,7 @@ setStorageAdapter({
 
 仓库自带示例工程 [packages/playground](https://github.com/MengXi-Studio/unix-pinia/tree/master/packages/playground)，「持久化插件 Persist」页以 PS1-1 ~ PS1-5 用例验证完整链路（修改自动落盘 / 直读存储验证信封内容 / 内存字段不落盘对照 / 启动恢复），以 `[verify]` 前缀输出日志并在页面直接显示 pass/fail。用 HBuilderX 打开 `packages/playground` 即可发行 Web / Android 复验。
 
-**Android 体验包（云打包产物）**：[下载 APK](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1792298656822-__UNI__0AA2919_1792298648182.apk)（vdom 模式，安装后进入「持久化插件」页查看 PS1 结果）
+**Android 体验包（云打包产物）**：[下载 APK](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1793386392738-__UNI__0AA2919_1793386383661.apk)（蒸汽模式，安装后进入「持久化插件」页查看 PS1 结果）
 
 **双端实测结论**：Web 全部用例通过；Android 侧插件与 ux-pinia core 同构（Kotlin 编译链零 vue 符号），待真机复验。
 
