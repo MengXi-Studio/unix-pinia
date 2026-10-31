@@ -1,6 +1,6 @@
 {
 	"name": "@meng-xi/unix-pinia-docs",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"private": true,
 	"description": "@meng-xi/unix-pinia 使用文档",
 	"type": "module",
