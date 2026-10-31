@@ -1,4 +1,4 @@
-## 0.2.0（2026-10-31）
+## 0.2.0 (2026-11-01)
 
 ### 变更（破坏性）
 
@@ -7,7 +7,8 @@
 
 ### 新增
 
-- **完整实例 API**：`$patch(partial)` / `$reset()` / `$subscribe(cb)` / `$onAction(cb)` / `$dispose()` / `$id` / `$state` / `$save()` 全部可用（由按需重写的三个 Template Method 钩子 `_doReset` / `_hydrate` / `_serialize` 驱动）
+- **完整实例 API**：`$patch(partial)` / `$reset()` / `$subscribe(cb)` / `$onAction(cb)` / `$dispose()` / `$id` / `$state` / `$save()` 全部可用（由按需重写的三个 Template Method 钩子 `_doReset` / `_hydrate` / `_serialize`
+  驱动）
 - **内置持久化插件**：`createPersistPlugin`（store 创建自动恢复，`$patch` / `$reset` / `$save` 自动落盘 `_serialize` 快照）+ `clearPersistedState`（清空指定 store 持久化数据）
 - **持久化并入主包**：原独立插件 ux-pinia-persist 取消发布，存储后端可替换（`setStorageAdapter` + `StorageAdapter` 类型，默认 uni storage，可换 unix-storage / 原生 preferences）
 - **验证**：Web 全用例通过；Android 云打包（Kotlin 编译链，蒸汽模式）通过，真机用例复验中

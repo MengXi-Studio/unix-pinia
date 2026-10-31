@@ -8,15 +8,13 @@
 		"ux-pinia",
 		"pinia",
 		"store",
-		"状态管理",
-		"persist",
-		"持久化"
+		"状态管理"
 	],
 	"repository": "https://github.com/MengXi-Studio/unix-pinia",
 	"engines": {
 		"HBuilderX": "^4.75",
 		"uni-app": "",
-		"uni-app-x": "^3.8.6"
+		"uni-app-x": "^5.0"
 	},
 	"dcloudext": {
 		"type": "uts",
@@ -39,7 +37,8 @@
 		"npmurl": "https://www.npmjs.com/package/@meng-xi/unix-pinia",
 		"darkmode": "√",
 		"i18n": "√",
-		"widescreen": "√"
+		"widescreen": "√",
+		"vapor": "√"
 	},
 	"uni_modules": {
 		"dependencies": [],
