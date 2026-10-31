@@ -1,5 +1,5 @@
 /**
- * 探针 store：页面用例专用测试载体（0.3.0 class 式架构）
+ * 探针 store：页面用例专用测试载体（0.2.0 class 式架构）
  *
  * - DisposeTestStore：instance-api 页 $dispose 后重建用例（独立 id，不污染 counter 注册表实例）
  * - PluginProbeStore：plugin 页插件调度验证载体（run 前先 $dispose，保证重新创建时调度插件）

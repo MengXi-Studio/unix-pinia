@@ -1,7 +1,7 @@
 /**
  * 实例 API 顶层函数（实现层）
  *
- * 0.3.0 class 式架构下的职责收缩：$patch / $reset / $subscribe / $onAction / $save
+ * 0.2.0 class 式架构下的职责收缩：$patch / $reset / $subscribe / $onAction / $save
  * 已是 PiniaStoreBase 实例方法（x-pinia-s 同款），顶层仅保留跨实例的通用操作：
  * - dispose(store)：注销实例（≡ store.$dispose()，注册表移除）
  * - getStoreId(store)：反查 id（≡ store.$id，未登记返回空串）

@@ -1,7 +1,7 @@
 /**
  * 持久化存储层（实现层，纯存储原语——零 vue 符号）
  *
- * 0.3.0 调整：键粒度从「字段级（前缀:storeId.key，JSON 信封）」改为「store 级
+ * 0.2.0 调整：键粒度从「字段级（前缀:storeId.key，JSON 信封）」改为「store 级
  * （前缀 + storeId，_serialize() 全量快照）」——class + reactive 架构下持久化由
  * _serialize/_hydrate 钩子驱动（Template Method），快照整体读写。
  * 后端可经 setStorageAdapterImpl 替换（unix-storage / 原生 preferences 等）。

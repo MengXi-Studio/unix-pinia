@@ -1,7 +1,7 @@
 /**
  * defineStore 实现（入口内联声明对外同名 API）
  *
- * 0.3.0 class 式架构：factory 返回 PiniaStoreBase 子类实例。
+ * 0.2.0 class 式架构：factory 返回 PiniaStoreBase 子类实例。
  * - 首次 useStore() 执行 factory() 并登记注册表；后续调用返回同一实例
  * - 实例创建后注入：$id（store id）、dispose 钩子（$dispose → 注册表移除）
  * - state 未绑定时警告（使用者忘写 bindState → $reset/$patch/$subscribe/持久化不可用）
@@ -40,7 +40,7 @@ export function defineStoreImpl<T>(id: string, factory: () => T): () => T {
 				console.warn("[unix-pinia] store '" + id + "' 未调用 bindState(state)——$reset/$patch/$subscribe/持久化将不可用")
 			}
 		} else {
-			console.warn("[unix-pinia] store '" + id + "' 的 factory 未返回 PiniaStoreBase 子类实例（0.3.0 起 store 必须继承 PiniaStoreBase）")
+			console.warn("[unix-pinia] store '" + id + "' 的 factory 未返回 PiniaStoreBase 子类实例（0.2.0 起 store 必须继承 PiniaStoreBase）")
 		}
 
 		// 插件调度（对齐 Pinia：store 创建时依次调用 pinia.use 注册的插件）

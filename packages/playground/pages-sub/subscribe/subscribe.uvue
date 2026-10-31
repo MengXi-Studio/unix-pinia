@@ -6,7 +6,7 @@
 		<view class="container">
 			<view class="card">
 				<text class="card-title">功能说明</text>
-				<text class="card-desc">$subscribe 订阅状态变更（0.3.0 由 PiniaStoreBase 提供）：$patch / $reset / $save 触发，回调收到 type 与 _serialize 快照，返回取消函数。注意：direct 修改 state（含 increment 等 action 直接改字段）不触发——需要快照/落盘的场景显式调用 $save()。进入页面自动运行。</text>
+				<text class="card-desc">$subscribe 订阅状态变更（0.2.0 由 PiniaStoreBase 提供）：$patch / $reset / $save 触发，回调收到 type 与 _serialize 快照，返回取消函数。注意：direct 修改 state（含 increment 等 action 直接改字段）不触发——需要快照/落盘的场景显式调用 $save()。进入页面自动运行。</text>
 			</view>
 
 			<view class="card">

@@ -6,7 +6,7 @@
 		<view class="container">
 			<view class="card">
 				<text class="card-title">功能说明</text>
-				<text class="card-desc">实例 API 由 PiniaStoreBase 基类提供（0.3.0 class 式）：$patch(partial UTSJSONObject) 经 _hydrate 装载局部数据、$id 反查 id、$dispose 注销实例（顶层 dispose 等价）、$save 显式保存点（触发 $subscribe 分发 type='save'）。dispose 后既有引用成为孤儿实例，本页使用独立测试 store 验证。进入页面自动运行。</text>
+				<text class="card-desc">实例 API 由 PiniaStoreBase 基类提供（0.2.0 class 式）：$patch(partial UTSJSONObject) 经 _hydrate 装载局部数据、$id 反查 id、$dispose 注销实例（顶层 dispose 等价）、$save 显式保存点（触发 $subscribe 分发 type='save'）。dispose 后既有引用成为孤儿实例，本页使用独立测试 store 验证。进入页面自动运行。</text>
 			</view>
 
 			<view class="card">

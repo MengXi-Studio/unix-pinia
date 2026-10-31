@@ -1,5 +1,5 @@
 /**
- * PiniaStoreBase：class 式 store 基类（0.3.0 架构，对齐 x-pinia-s 的成熟设计）
+ * PiniaStoreBase：class 式 store 基类（0.2.0 架构，对齐 x-pinia-s 的成熟设计）
  *
  * 为什么是 class + reactive（架构定稿）：
  * - UTS 无 Proxy、无反射：setup 式 + Ref 形态下 $patch/$subscribe/$onAction/$reset

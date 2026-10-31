@@ -6,7 +6,7 @@
 		<view class="container">
 			<view class="card">
 				<text class="card-title">功能说明</text>
-				<text class="card-desc">0.3.0 class 式架构：store.state 本身就是 reactive&lt;T&gt; 强类型对象——脚本与模板同路径（counterStore.state.count）直接读写，修改即响应式更新。请勿再用 reactive() 包整个 store：UTS 无 Proxy，包装解包行为双端不一致，且 state 已内置 reactive 无此需求。进入页面自动运行。</text>
+				<text class="card-desc">0.2.0 class 式架构：store.state 本身就是 reactive&lt;T&gt; 强类型对象——脚本与模板同路径（counterStore.state.count）直接读写，修改即响应式更新。请勿再用 reactive() 包整个 store：UTS 无 Proxy，包装解包行为双端不一致，且 state 已内置 reactive 无此需求。进入页面自动运行。</text>
 			</view>
 
 			<view class="card">

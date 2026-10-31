@@ -1,5 +1,5 @@
 /**
- * user store：跨 store 依赖演示（0.3.0 class 式架构）
+ * user store：跨 store 依赖演示（0.2.0 class 式架构）
  *
  * 跨 store 调用放在 method 内（不能放在字段初始化器——store 创建时机不可控）
  */

@@ -6,7 +6,7 @@
 		<view class="container">
 			<view class="card">
 				<text class="card-title">功能说明</text>
-				<text class="card-desc">ux-pinia 0.3.0 内置持久化插件（main.uts 已注册，keyPrefix 'ux-pinia:'）：store 创建时读存储经 _hydrate 恢复；$patch / $reset / $save 触发 _serialize 快照落盘（store 级快照键 ux-pinia:persist-demo，非字段级信封）；direct 修改不自动落盘，关键操作后调 $save()。tempValue 不在 _serialize 快照中（内存对照项）。杀进程重进可验证恢复。进入页面自动运行。</text>
+				<text class="card-desc">ux-pinia 0.2.0 内置持久化插件（main.uts 已注册，keyPrefix 'ux-pinia:'）：store 创建时读存储经 _hydrate 恢复；$patch / $reset / $save 触发 _serialize 快照落盘（store 级快照键 ux-pinia:persist-demo，非字段级信封）；direct 修改不自动落盘，关键操作后调 $save()。tempValue 不在 _serialize 快照中（内存对照项）。杀进程重进可验证恢复。进入页面自动运行。</text>
 			</view>
 
 			<view class="card">

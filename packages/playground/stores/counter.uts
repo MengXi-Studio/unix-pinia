@@ -1,5 +1,5 @@
 /**
- * counter store：基础能力演示（0.3.0 class 式架构）
+ * counter store：基础能力演示（0.2.0 class 式架构）
  *
  * 形态要点：
  * - class extends PiniaStoreBase：$patch/$reset/$subscribe/$dispose 由基类提供

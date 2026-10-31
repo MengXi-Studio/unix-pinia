@@ -1,9 +1,9 @@
 {
 	"name": "unix-pinia",
 	"type": "module",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"private": true,
-	"description": "为 uni-app x 提供 Pinia 风格的状态管理库（UTS 编写，setup 式）",
+	"description": "为 uni-app x 提供 Pinia 风格的状态管理与内置持久化（UTS 编写，class + reactive 架构）",
 	"packageManager": "pnpm@10.31.0",
 	"workspaces": [
 		"packages/*"

@@ -1,5 +1,5 @@
 /**
- * 持久化插件（0.3.0，原独立包 @meng-xi/unix-pinia-persist 并入内置）
+ * 持久化插件（0.2.0，原独立包 @meng-xi/unix-pinia-persist 并入内置）
  *
  * 用法（main.uts 顶层登记）：
  * ```
