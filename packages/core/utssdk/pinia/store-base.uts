@@ -35,8 +35,12 @@ export type ActionChangeCallback = (info: ActionInfo) => void
 export class PiniaStoreBase {
 	/** store id（由 defineStore 在实例创建时注入） */
 	$id: string = ''
-	/** 当前 state 引用（bindState 时与子类 state 字段同引用） */
-	$state: any = null
+	/**
+	 * 当前 state 引用（bindState 时与子类 state 字段同引用）。
+	 * 可空红线：UTS 的 any 生成 Kotlin 非空 Any，未绑定前为 null 必须声明 any | null
+	 * （5.34 云打包实证：`$state: any = null` 生成 `Any = null` 编译报错）。
+	 */
+	$state: any | null = null
 
 	private _stateSubscribers: Array<StateChangeCallback> = []
 	private _actionSubscribers: Array<ActionChangeCallback> = []
