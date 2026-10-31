@@ -1,7 +1,7 @@
 /**
  * unix-pinia 插件跨平台根入口（uni_modules UTS 插件）
  *
- * 0.2.0 架构定稿：**class + reactive**（对齐 x-pinia-s 的成熟设计）。
+ * 0.2.0 架构定稿：**class + reactive**。
  * 放弃 setup 式 + Ref 形态（UTS 无 Proxy/反射 + HBuilderX 5.34 编译器对 UTS 插件内
  * 运行时类 vue 符号的 Kotlin import 生成失效，双重不可实现），换取完整 Pinia 功能面：
  * $patch / $reset / $subscribe / $onAction / $dispose / $id / $state + 内置持久化插件。

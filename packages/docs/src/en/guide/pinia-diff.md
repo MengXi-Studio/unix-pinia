@@ -1,39 +1,48 @@
 # Differences from standard Pinia
 
-unix-pinia replicates the Pinia API surface 1:1; because UTS compiles to Kotlin/Swift without Proxy, objects cannot gain dynamic properties and fields cannot be enumerated at runtime, some capabilities cannot be implemented. Each is listed with its reason and replacement.
+unix-pinia aligns with standard Pinia's feature surface and usage habits. Because UTS compiles to Kotlin/Swift without Proxy and without reflective field enumeration, and recent HBuilderX compilers fail to generate Kotlin imports for runtime-class vue symbols (`Ref` / `watch` / `effectScope`) inside UTS plugins, some capabilities take a different form or are pruned — each listed below.
 
-## Form differences (implemented, different form)
+## Architecture form differences
 
 | Standard Pinia | unix-pinia | Reason |
 | --- | --- | --- |
-| `store.$patch(fn)` | `patch(store, fn)` top-level function | methods cannot be attached to store objects |
-| `store.$id` | `getStoreId(store)` | same |
-| `store.$dispose()` | `dispose(store)` | same |
-| Script state access `store.count` | `store.count.value` | UTS has no Proxy; templates auto-unwrap after `storeToRefs` destructuring |
-| `defineStore` type inference | explicit `type` annotation required | UTS inference is limited; explicit is safer |
-| `pinia.use` plugins may return objects merged into the store | plugins return `void`, hook logic only | UTS forbids injecting properties into existing objects |
+| setup-style or Options-style defineStore | class-style: `class XxxStore extends PiniaStoreBase` | class + reactive is the only viable architecture for a full $-API inside a plugin |
+| state in any shape (ref / reactive mixed) | state is a class field wrapped in strongly-typed `reactive<T>` (primitive-value fields) | UTS has no Proxy and the Ref-unwrapping behavior is inconsistent across platforms; reactive is compile-time expanded and consistent |
+| getter = `computed` | derived values = class getters | `effectScope` is unavailable inside plugins and computed stops working across pages; getters are evaluated per access with no lifecycle issues |
+| script access `store.count` | `store.state.count` (no `.value`) | state is a strongly-typed reactive object; scripts and templates share the same path |
+| return type auto-inferred | factory return type annotated explicitly (a class instance) | UTS inference is limited; explicit annotation is safer |
 
-## Pruned APIs (not implementable)
+## Instance API differences
+
+| Standard Pinia | unix-pinia | Notes |
+| --- | --- | --- |
+| `$patch(fn)` / `$patch(partial)` | `$patch(partial: UTSJSONObject)` — object form only | no `Partial<T>` inference; loading goes through the `_hydrate` hook and stays type-safe |
+| `$subscribe(cb)` fires on any change | `$subscribe(cb)` fires only on `$patch` / `$reset` / `$save` | UTS has no global field-subscription hook; call `$save()` after direct mutations |
+| `$onAction` tracks all actions automatically | only actions wrapped with `callAction` are tracked | UTS cannot wrap methods automatically |
+| `$state = { ... }` whole replacement | `$state` is a read-only reference (same as `store.state`) | a reactive object cannot be cast wholesale; mutate per field + `$patch` |
+| `$reset()` built in (Options stores) | `$reset()` is defined by the `_doReset` hook | standard Pinia does not build it in for setup stores either |
+| plugins may return an object merged into the store | plugins return `void`, hook logic only | UTS forbids injecting properties into existing objects dynamically |
+
+## Pruned APIs
 
 | API | Reason | Replacement |
 | --- | --- | --- |
-| Options-style `defineStore` | UTS `this` is limited to class methods | setup style (Pinia officially recommends it too) |
-| `$patch(对象)` object form | no `Partial<T>`, no field reflection | `patch(store, mutator)` |
-| `$subscribe(cb)` | deep watch does not fire on RefImpl fields in Android (verified, cross-platform mismatch) | per-field `watch(store.count, cb)` |
-| `$onAction(cb)` | action enumeration is not implementable | explicit logging inside actions |
-| `$state` snapshot | field enumeration is not implementable | per-field operations inside a patch mutator |
-| `mapState` helpers | composition API is the mainstream; spread injection unverified | `storeToRefs` destructuring |
-| devtools / HMR / SSR | no such mechanisms on native | — |
-| `acceptHMRUpdate` | same | — |
+| Options-style `defineStore` | `this` in UTS is limited to class methods (the class style already covers that form) | class-style defineStore |
+| Options helpers like `mapState` | composition is the mainstream; spread injection is unverified | access `store.state.x` and getters directly |
+| devtools / HMR / SSR / `acceptHMRUpdate` | no corresponding mechanism on native | — |
 
 ## Behavioral parity (not pruned)
 
-| Item | Note |
+| Item | Notes |
 | --- | --- |
-| `$reset` not built in | standard Pinia's setup stores behave the same (throws); provide a custom reset action |
-| Required `id` | Pinia's id inference relies on Symbol/SSR context |
-| Multiple Pinia instances | one global store registry (no multi-instance isolation scenario in uni-app x apps); `createPinia` instances carry plugins and the active flag |
+| required id | standard Pinia's id inference relies on Symbol/SSR context |
+| same-id idempotency | duplicate `defineStore` warns and returns the existing instance |
+| multiple Pinia instances | one globally unique store registry (uni-app x apps have no multi-instance isolation scenario); `createPinia` instances carry plugins and the active flag |
 
 ## Mounting difference
 
-`app.use(pinia)` does not fire `install` on vdom-mode native (verified) — unix-pinia adopts **mount-free** as the only reliable form: zero setup code; for plugins use top-level `setActivePinia(createPinia().use(plugin))`.
+`app.use(pinia)` does not fire install on native (verified) — unix-pinia adopts **mount-free** as the only reliable form: it works with zero mounting code; for plugins, top-level `setActivePinia(createPinia().use(plugin))`.
+
+## Template binding difference
+
+Template event bindings to class methods **must include parentheses**: `@click="counter.increment()"` — a method is not a value on Kotlin (Web's first-class JS functions mask the difference).

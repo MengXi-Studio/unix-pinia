@@ -4,7 +4,7 @@
 
 ### Changed (breaking)
 
-- **Architecture upgrade: class + reactive** (aligned with the officially recommended x-pinia-s plugin): stores are now defined as `class XxxStore extends PiniaStoreBase` — state wrapped in strongly-typed `reactive<T>`, derived values as class getters, actions as plain methods; `defineStore<T>(id, factory)` returns the useStore function
+- **Architecture upgrade: class + reactive**: stores are now defined as `class XxxStore extends PiniaStoreBase` — state wrapped in strongly-typed `reactive<T>`, derived values as class getters, actions as plain methods; `defineStore<T>(id, factory)` returns the useStore function
 - Setup-style APIs from 0.1.0 removed: `storeToRefs` (reactive state is template-reactive directly, no destructuring needed), top-level `patch(mutator)` (`$patch(partial)` is equivalent and type-safe), `loadPersisted` / `savePersisted` / `getStorageKey` (internalized by the built-in persistence plugin)
 
 ### Added

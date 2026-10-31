@@ -3,25 +3,17 @@
 ## defineStore
 
 ```uts
-export function defineStore<T>(id: string, setup: () => T): () => T
+export function defineStore<T>(id: string, factory: () => T): () => T
 ```
 
-Define a setup-style store.
+Define a class-style store.
 
 | Param | Type | Notes |
 | --- | --- | --- |
-| `id` | `string` | globally unique id (reverse-domain naming recommended, e.g. `'user.profile'`) |
-| `setup` | `() => T` | factory: state via `Ref`, getters via `ComputedRef`, actions via arrow functions, returning an explicitly annotated `type` object |
+| `id` | `string` | globally unique identifier (naming suggestion: `'user.profile'`, reversed-domain style) |
+| `factory` | `() => T` | factory function: returns a `PiniaStoreBase` subclass instance (`new CounterStore()`) |
 
-Returns the `useStore` function. **The first call runs setup and registers the store; later calls return the same instance** (shared across pages); duplicate `defineStore` with the same id warns and stays idempotent.
-
-## storeToRefs
-
-```uts
-export function storeToRefs<T>(store: T): T
-```
-
-Returns the store's ref collection for template destructuring with auto-unwrapping. Idempotent.
+Returns the `useStore` function. **The first call creates the instance and registers it; later calls return the same instance** (shared across pages); duplicate `defineStore` with the same id warns and stays idempotent. On first creation it injects `$id`, the dispose hook, and schedules the registered plugins in order.
 
 ## createPinia
 
@@ -29,7 +21,7 @@ Returns the store's ref collection for template destructuring with auto-unwrappi
 export function createPinia(): Pinia
 ```
 
-Creates a Pinia instance (carries the plugin list). Pair with `setActivePinia` so stores schedule plugins on creation.
+Creates a Pinia instance (carries the plugin list). Mount-free design: pure state management never calls it; in plugin scenarios, after top-level `setActivePinia(createPinia().use(plugin))` registration, plugins are scheduled when stores are created.
 
 ## setActivePinia / getActivePinia
 
@@ -38,15 +30,7 @@ export function setActivePinia(pinia: Pinia | null): void
 export function getActivePinia(): Pinia | null
 ```
 
-Multi-instance switching (plugin scenarios). Without a call, the first `useStore` lazily creates a default instance — pure state management never needs these.
-
-## patch
-
-```uts
-export function patch<T>(store: T, fn: (s: T) => void): void
-```
-
-Batch-update state, mirroring `store.$patch(fn)`. Mutator form only (the object form requires `Partial<T>`, not implementable in UTS).
+Register / read the current Pinia instance (multi-instance switching / plugin scenarios; the only reliable form on native). Without registration, plugins are not scheduled but stores themselves work normally.
 
 ## dispose
 
@@ -54,7 +38,7 @@ Batch-update state, mirroring `store.$patch(fn)`. Mutator form only (the object 
 export function dispose<T>(store: T): void
 ```
 
-Removes the store instance, mirroring `store.$dispose()`. The next `useStore()` re-runs setup. Note existing references become orphans.
+Disposes a store instance, ≙ `store.$dispose()`. The next `useStore()` rebuilds a brand-new instance. Note that existing references become orphan instances; use it only for app-level cleanup scenarios.
 
 ## getStoreId
 
@@ -62,4 +46,38 @@ Removes the store instance, mirroring `store.$dispose()`. The next `useStore()` 
 export function getStoreId<T>(store: T): string
 ```
 
-Looks up the store id, mirroring `store.$id`. Returns an empty string if unregistered.
+Looks up the store id, ≙ `store.$id`. Returns an empty string if unregistered.
+
+## createPersistPlugin
+
+```uts
+export function createPersistPlugin(options: PersistOptions): PiniaPlugin
+```
+
+Creates the built-in persistence plugin (register at the top level of `main.uts`; one configuration, effective for all stores):
+
+- **Restore**: on store creation, read storage → `store._hydrate(data)` (automatic)
+- **Persist to storage**: `$patch` / `$reset` / `$save` trigger the `_serialize()` snapshot write (automatic)
+- **Prerequisite**: stores override `_serialize()` / `_hydrate()` on demand (without overriding, persistence for that store is a no-op)
+
+See [PersistOptions](./types#persistoptions) for the options.
+
+## clearPersistedState
+
+```uts
+export function clearPersistedState(storeId: string, keyPrefix: string): void
+```
+
+Clears the persisted data of the given store. Keep `keyPrefix` consistent with the `createPersistPlugin` configuration.
+
+## setStorageAdapter
+
+```uts
+export function setStorageAdapter(next: StorageAdapter): void
+```
+
+Swaps the storage backend (uni storage by default; swap to unix-storage / native preferences). Call before creating any store.
+
+::: tip Migration note
+The early setup-style APIs (`storeToRefs` / top-level `patch` / `loadPersisted` / `savePersisted` etc.) have been removed. For the form mapping see [Differences from standard Pinia](../guide/pinia-diff); for the change history see the changelog.
+:::

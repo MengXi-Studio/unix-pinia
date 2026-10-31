@@ -179,7 +179,7 @@ class 与类型：`PiniaStoreBase`（store 基类）/ `Pinia`（实例）/ `Pini
 
 ## 交流与支持
 
-想了解设计思路与实现原理（UTS reactive 的编译期展开、可空性红线、`$subscribe` 裁决过程、`x-pinia-s` 架构对照等）？公众号「**梦曦工作室**」有系列解析，扫码获取更多信息：
+想了解设计思路与实现原理（UTS reactive 的编译期展开、可空性红线、`$subscribe` 裁决过程等）？公众号「**梦曦工作室**」有系列解析，扫码获取更多信息：
 
 <img alt="微信公众号二维码" width="180" src="https://raw.githubusercontent.com/MengXi-Studio/unix-pinia/master/packages/docs/src/public/QR_code.jpg">
 

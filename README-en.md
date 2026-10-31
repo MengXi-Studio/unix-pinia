@@ -25,7 +25,7 @@ In uni-app x **vdom-mode native apps**, the standard Pinia cannot compile (Vapor
 - **Want persistence?** Built-in `createPersistPlugin`: automatic restore on store creation, automatic save on `$patch` / `$reset` / `$save` — just override the `_serialize` / `_hydrate` hooks when needed;
 - **Multi-platform?** The same UTS source compiles to JS on Web and Kotlin on Android, on the fly by the uni-app x toolchain, with no JS bridge.
 
-Design note: UTS has no Proxy and no reflection, and recent HBuilderX compilers fail to generate Kotlin imports for runtime-class vue symbols (`Ref` / `watch` / `effectScope`) inside UTS plugins — **class + reactive is the only viable architecture for a full Pinia surface in a uni-app x plugin** (same approach as the officially recommended [x-pinia-s](https://ext.dcloud.net.cn/plugin?name=x-pinia-s)). `reactive<T>` in UTS is compile-time expanded (property proxies are generated) and unaffected by that constraint.
+Design note: UTS has no Proxy and no reflection, and recent HBuilderX compilers fail to generate Kotlin imports for runtime-class vue symbols (`Ref` / `watch` / `effectScope`) inside UTS plugins — **class + reactive is the only viable architecture for a full Pinia surface in a uni-app x plugin**. `reactive<T>` in UTS is compile-time expanded (property proxies are generated) and unaffected by that constraint.
 
 ## Features
 

@@ -25,7 +25,7 @@ uni-app x 的 **vdom 模式 App 原生端**无法使用标准 Pinia（蒸汽模�
 - **要持久化？** 内置 `createPersistPlugin`：store 创建自动恢复、`$patch` / `$reset` / `$save` 自动落盘——只需按需重写 `_serialize` / `_hydrate` 两个钩子；
 - **多端发布？** 同一份 UTS 源码，Web 编译为 JS、Android 编译为 Kotlin，由 uni-app x 编译链现场编译，无 JS Bridge。
 
-设计说明：UTS 无 Proxy、无反射，且新版 HBuilderX 编译器对 UTS 插件内运行时类 vue 符号（`Ref` / `watch` / `effectScope`）的 Kotlin import 生成失效——**class + reactive 是 uni-app x 插件实现完整 Pinia 功能面的唯一可行架构**（同款方案见官方推荐的 [x-pinia-s](https://ext.dcloud.net.cn/plugin?name=x-pinia-s)）。`reactive<T>` 在 UTS 中为编译期展开（生成属性代理），不受该约束影响。
+设计说明：UTS 无 Proxy、无反射，且新版 HBuilderX 编译器对 UTS 插件内运行时类 vue 符号（`Ref` / `watch` / `effectScope`）的 Kotlin import 生成失效——**class + reactive 是 uni-app x 插件实现完整 Pinia 功能面的唯一可行架构**。`reactive<T>` 在 UTS 中为编译期展开（生成属性代理），不受该约束影响。
 
 ## 特性
 
@@ -215,7 +215,7 @@ export class UserStore extends PiniaStoreBase {
 
 ## 交流与支持
 
-想了解设计思路与实现原理（UTS reactive 的编译期展开、可空性红线、`x-pinia-s` 架构对照等）？公众号「**梦曦工作室**」有系列解析，扫码关注：
+想了解设计思路与实现原理（UTS reactive 的编译期展开、可空性红线、`$subscribe` 裁决过程等）？公众号「**梦曦工作室**」有系列解析，扫码关注：
 
 <p align="center">
   <img alt="微信公众号 二维码" width="180" src="https://github.com/MengXi-Studio/unix-pinia/blob/master/packages/docs/src/public/QR_code.jpg">

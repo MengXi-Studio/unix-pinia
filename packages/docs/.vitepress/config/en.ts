@@ -2,7 +2,7 @@ import type { DefaultTheme, LocaleSpecificConfig } from 'vitepress'
 
 export const META_URL = 'https://mengxi-studio.github.io/unix-pinia/en/'
 export const META_TITLE = 'Unix Pinia'
-export const META_DESCRIPTION = 'Pinia-style state management for uni-app x, written in strict UTS'
+export const META_DESCRIPTION = 'Pinia-style state management with built-in persistence for uni-app x, written in strict UTS'
 
 export const enConfig: LocaleSpecificConfig<DefaultTheme.Config> = {
 	/** Site description */

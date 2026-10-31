@@ -18,25 +18,19 @@ mkdir -p uni_modules && cp -R node_modules/@meng-xi/unix-pinia uni_modules/ux-pi
 业务侧统一从 uni_modules 目录导入：
 
 ```uts
-import { defineStore, storeToRefs } from '@/uni_modules/ux-pinia'
-import type { PiniaPlugin } from '@/uni_modules/ux-pinia'
+import { defineStore, PiniaStoreBase, createPinia, setActivePinia } from '@/uni_modules/ux-pinia'
+import { createPersistPlugin, clearPersistedState, setStorageAdapter, dispose, getStoreId } from '@/uni_modules/ux-pinia'
+import type { Pinia, PiniaPlugin, PiniaPluginContext, StorageAdapter } from '@/uni_modules/ux-pinia'
 ```
 
 ## 环境要求
 
 | 项 | 要求 |
 | --- | --- |
-| HBuilderX | 4.75+（5.26 实测） |
-| 编译模式 | vdom 模式主战场（蒸汽模式建议直接用标准 Pinia） |
-| uni-app x 项目 | `manifest.json` 的 `uni-app-x` 节点**不要**开启 `vapor: true` |
+| HBuilderX | 4.75+ |
+| 项目类型 | uni-app x 项目 |
+| 编译模式 | vdom / 蒸汽（vapor）均可——蒸汽模式云打包验证通过，vdom 模式 Web 全用例实测 |
 
 ## 验证安装
 
-在任意页面 `script setup` 中执行：
-
-```uts
-import { getActivePinia } from '@/uni_modules/ux-pinia'
-console.log('unix-pinia ready')
-```
-
-编译通过且控制台输出即安装成功。更完整的验证可使用仓库示例工程 [packages/playground](https://github.com/MengXi-Studio/unix-pinia/tree/master/packages/playground)：用 HBuilderX 打开并发行，或直接安装 [Android 体验包（云打包产物）](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1793456655694-__UNI__0AA2919_1793456648910.apk)，进入各功能页查看 `[verify]` 结果。
+定义任意 store 并在页面消费（见[快速开始](./getting-started)），编译通过且页面响应即安装成功。更完整的验证可使用仓库示例工程 [packages/playground](https://github.com/MengXi-Studio/unix-pinia/tree/master/packages/playground)：用 HBuilderX 打开并发行，或直接安装 [Android 体验包（云打包产物）](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1793456655694-__UNI__0AA2919_1793456648910.apk)，进入各功能页查看 `[verify]` 结果。

@@ -2,7 +2,7 @@ import type { DefaultTheme, LocaleSpecificConfig } from 'vitepress'
 
 export const META_URL = 'https://mengxi-studio.github.io/unix-pinia/'
 export const META_TITLE = 'Unix Pinia'
-export const META_DESCRIPTION = '为 uni-app x 提供 Pinia 风格的状态管理库'
+export const META_DESCRIPTION = '为 uni-app x 提供 Pinia 风格的状态管理与内置持久化'
 
 export const zhConfig: LocaleSpecificConfig<DefaultTheme.Config> = {
 	/** 网站配置 描述 */

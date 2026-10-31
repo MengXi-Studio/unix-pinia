@@ -4,42 +4,56 @@
 
 - id 使用**域名式反写**避免冲突：`'user.profile'`、`'cart.items'`
 - 一个 store 一个文件，放在 `stores/` 目录：`stores/user.uts`
-- `type` 与 `useStore` 同文件导出，调用方一次 import 拿全
+- state `type`、store class 与 `useStore` 同文件导出，调用方一次 import 拿全
 
 ## 状态设计
 
-- **能推导的类型别手写**：getter 一律 `ComputedRef` 派生，不要把派生值存成 state（避免双份数据源）
-- **action 里改状态**：业务组件只调用 action，不直接改 `store.count.value`——保持修改路径可追踪（与 Pinia 一致的心智）
-- **reset 一律显式**：每个 store 提供自定义 `reset` action（`$reset` 不内置，见[差异说明](./pinia-diff)）
+- **state 只放原始值字段**：`reactive<T>` 强类型包裹；嵌套对象 / Ref 的解包行为双端不一致，避免放入 state
+- **能推导的别存储**：派生值一律 class getter，不要存成 state 字段（避免双份数据源）
+- **action 里改状态**：业务组件只调用 action，不直接改 `store.state.x`——保持修改路径可追踪；direct 修改后如需落盘 / 通知，调用 `store.$save()`
+- **快照最小化**：`_serialize()` 只返回需持久化的字段（临时输入等内存态字段不入快照）
 
 ## 跨 store 组合
 
 ```uts
-// ✅ 推荐：setup 顶部依赖，action 中使用
-export const useCartStore = defineStore<CartStore>('cart', (): CartStore => {
-	const userStore = useUserStore()
-	const clearOnLogout = (): void => {
-		userStore.logout()
-		items.value = []
-	}
-	...
-})
+// ✅ 推荐：method 内调用对方 useStore（注册表保证单例）
+export class CartStore extends PiniaStoreBase {
+  state: CartState = reactive<CartState>({ items: 0 })
+
+  constructor() {
+    super()
+    this.bindState(this.state)
+  }
+
+  clearOnLogout(): void {
+    useUserStore().logout()
+    this.state.items = 0
+  }
+}
 ```
 
 ```uts
+// ❌ 避免：字段初始化器中跨 store（store 创建时机不可控）
 // ❌ 避免：getter 内跨 store 引用形成循环依赖
-const fullName: ComputedRef<string> = computed((): string => {
-	return useOtherStore().a + useOtherStore().b // 依赖链失控
-})
 ```
 
-## subscribe 与副作用
+## 订阅与副作用
 
-- 状态订阅使用**字段级 `watch`**（整体 `$subscribe` 已裁掉）；在组件 setup 中注册的 watch 随组件销毁自动停止，全局型订阅放在 store 的 action 内注册
-- `dispose` 仅用于应用级清理（如登出）；**dispose 后旧引用成为孤儿实例**，常规业务通过 action 重置而非 dispose
+- `$subscribe` 仅由 `$patch` / `$reset` / `$save` 触发——关键操作后显式 `$save()`；回调中拿到的是 `_serialize()` 快照
+- `$dispose` 仅用于应用级清理（如登出）；**dispose 后旧引用成为孤儿实例**，常规业务通过 action 重置而非 dispose
+
+## 模板绑定
+
+- 模板事件绑定 class method **必须带括号**：`@click="counter.increment()"`（Kotlin 端 method 不是值）
+- 模板直接使用 `store.state.x` 与 getter，无需任何解构步骤
+
+## 持久化实践
+
+- `_hydrate` 逐字段判空回填（存储损坏 / 字段缺失天然回退初始值），不要整体覆盖 state
+- 调试用 `clearPersistedState(storeId, keyPrefix)` 清空单个 store；换后端用 `setStorageAdapter` 并在创建任何 store 前调用
 
 ## 类型规范
 
-- `import type { Ref, ComputedRef } from 'vue'` 统一显式导入（`ComputedRef` 不全局注入，漏导入仅告警但 Kotlin 端更严）
-- setup 返回对象与 `type` 逐字段对齐，使用 `as XxxStore` 收尾（对象字面量只能赋给 type 类型）
-- action 必须箭头函数（UTS 函数声明不能作值传递）
+- `reactive<T>` 泛型实参显式标注，state 字段类型来自独立 `type`（如 `CounterState`）
+- `PiniaPlugin` / `PiniaPluginContext` / `StorageAdapter` 等类型从插件入口 `import type` 导入
+- constructor 中 `super()` 后必须 `bindState(this.state)`——漏写仅运行时警告，但 `$reset` / `$patch` / `$subscribe` / 持久化不可用

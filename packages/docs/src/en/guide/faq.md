@@ -1,33 +1,45 @@
 # FAQ
 
-## Why do scripts need `.value` when standard Pinia does not?
+## Does script access to state need `.value`?
 
-UTS compiles to Kotlin/Swift without Proxy, so `reactive()` cannot auto-unwrap Refs (verified: fields keep their `RefImpl` form). Templates are unaffected — Refs from `storeToRefs` destructuring are auto-unwrapped by the uvue renderer. See [Internals](./internals).
+No. state is a strongly-typed `reactive<T>` object; `counter.state.count` is read/written directly through the same path in scripts and templates, and derived getters work the same way (`counter.doubleCount`). See [Internals](./internals).
 
-## Why is there no `$subscribe`?
+## Why are stores classes?
 
-Whole-store subscription requires enumerating all state fields; UTS cannot reflect over object fields, and `deep watch` was verified not to fire on RefImpl fields in Android (it works on Web — a cross-platform mismatch, hence pruned). Replacement: per-field subscription `watch(store.count, cb)` — same semantics, more precise types.
+UTS has no Proxy and no reflection, so the setup-style + Ref form cannot implement `$patch` / `$subscribe` / `$onAction` / `$reset`; moreover, recent HBuilderX compilers fail to generate Kotlin imports for runtime-class vue symbols (`Ref` / `watch` / `effectScope`) inside UTS plugins. Class + reactive (`reactive<T>` compile-time expansion) is the only viable architecture for a full $-API inside a plugin. See [Internals](./internals).
 
-## Why is `patch` a top-level function instead of `store.$patch()`?
+## Why getters instead of computed for derived values?
 
-UTS objects cannot gain dynamic properties, so `$patch` cannot be attached to the type object returned by setup. The top-level `patch(store, fn)` is the equivalent form under this platform constraint.
+`effectScope` is unavailable inside plugins; a computed binds to the scope of the page that first creates the store and stops working across pages. A class getter is evaluated per access, with dependency tracking happening automatically through reactive property access — no lifecycle issues.
+
+## Why does `$subscribe` fire only on `$patch` / `$reset` / `$save`?
+
+UTS has no global field-subscription hook, so direct mutations cannot be observed. For snapshot / persist-to-storage scenarios, call `store.$save()` explicitly after key operations. See [Basic usage](./basic-usage#state-subscriptions).
+
+## Why must template event bindings include parentheses?
+
+A class method is not a value on Kotlin (Web's first-class JS functions mask the difference): `@click="counter.increment"` fails to compile — it must be `@click="counter.increment()"`.
 
 ## Why is `app.use(pinia)` not needed?
 
-unix-pinia uses a module-level registry instead of the Vue plugin injection chain — import and go. Verified: `app.use(Pinia instance)` does not fire install on native (cross-platform mismatch), so mount-free is the only reliable form. For plugins, use top-level `setActivePinia(createPinia().use(plugin))` in `main.uts`.
+unix-pinia uses a module-level registry instead of the Vue plugin injection chain — import and use. Verified: `app.use(Pinia instance)` does not fire install on native (cross-platform inconsistency), so mount-free is the only reliable form. For plugins, use top-level `setActivePinia(createPinia().use(plugin))` in `main.uts`.
+
+## Why does persistence require overriding `_serialize` / `_hydrate`?
+
+UTS's `reactive<T>` returns a strongly-typed class that cannot be cast to `UTSJSONObject` or reflectively enumerated — the framework cannot know which fields your state has and which of them need persistence. The two hooks are the persistence contract: `_serialize` defines the snapshot, `_hydrate` defines the refill. Without overriding them, persistence for that store is a no-op.
 
 ## Does it support iOS / HarmonyOS?
 
-The codebase is fully platform-homogeneous (pure UTS, no platform branches) and is expected to compile directly on Swift / ArkTS toolchains. Android + Web are verified today; this page will be updated after on-device verification. See [Platform support](./platform).
+The codebase is fully platform-homogeneous (pure UTS, no platform branches), so direct compilation on the Swift / ArkTS toolchains is expected. Today the full suite is verified on Web and the Android cloud build passes; iOS / HarmonyOS will be reflected on the [Platform support](./platform) page after re-verification.
 
 ## Can Vapor-mode projects use it?
 
-It runs, but they **shouldn't** — Vapor-mode projects can use the standard Pinia on all platforms (officially adapted). unix-pinia targets vdom-mode native apps.
+Yes — verified via cloud build (Vapor mode). That said, Vapor-mode projects can also use standard Pinia directly on all platforms (officially adapted); this library's incremental value lies in a unified paradigm plus the built-in persistence plugin.
 
 ## Can a getter depend on another store?
 
-Technically possible, but **not recommended** — put cross-store references in actions or at the top of setup to avoid circular getter chains (same caveat as standard Pinia). See [Best practices](./best-practices).
+Technically possible, but **not recommended** — put cross-store references inside methods to avoid circular getter dependency chains (same caveat as standard Pinia). See [Best practices](./best-practices).
 
-## How is this different from just exporting a global reactive variable?
+## Compared with exporting a global reactive variable, what is the value?
 
-The official lightweight recipe fits a single state file. unix-pinia provides the **conventions**: id namespaces with idempotency, unified structure (state/getter/action layering), `storeToRefs` template binding, instance APIs, cross-store composition, and the lowest-cost migration path to standard Pinia.
+The official lightweight recipe (exporting a module-level reactive variable) fits a single state in a single file. unix-pinia provides the **paradigm**: id namespaces with idempotency, unified organization (state / getter / action layering), the full $-API, the built-in persistence plugin, cross-store composition, and the lowest-cost migration path to standard Pinia.

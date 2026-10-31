@@ -7,7 +7,7 @@
 ```uts
 import { createPinia, setActivePinia, getActivePinia } from '@/uni_modules/ux-pinia'
 
-// 场景一：纯状态管理——什么都不用做（首次 useStore 惰性创建默认实例）
+// 场景一：纯状态管理——什么都不用做（未登记 activePinia 时仅插件不调度，store 正常工作）
 
 // 场景二：使用插件——main.uts 顶层显式登记
 setActivePinia(
@@ -33,12 +33,12 @@ const pinia = getActivePinia() // Pinia | null
 
 ## 插件调度时机
 
-每个 store **首次创建**时（`useStore` 首次调用、setup 执行后），按顺序调用已注册插件：
+每个 store **首次创建**时（`useStore` 首次调用、factory 执行后），按顺序调用已注册插件：
 
 ```uts
 const logger: PiniaPlugin = (ctx: PiniaPluginContext): void => {
 	console.log('store created:', ctx.storeId)
-	// ctx.store 为 any，使用处收窄：const s = ctx.store as CounterStore
+	// ctx.store 为 any，使用处收窄：const base = ctx.store as any as PiniaStoreBase
 }
 ```
 

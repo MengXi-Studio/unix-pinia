@@ -2,7 +2,7 @@
 
 ### 变更（破坏性）
 
-- **架构升级：class + reactive**（对齐官方推荐插件 x-pinia-s 的成熟设计）：store 定义改为 `class XxxStore extends PiniaStoreBase`——state 用 `reactive<T>` 强类型包裹、派生值用 class getter、action 为普通 method；`defineStore<T>(id, factory)` 返回 useStore
+- **架构升级：class + reactive**：store 定义改为 `class XxxStore extends PiniaStoreBase`——state 用 `reactive<T>` 强类型包裹、派生值用 class getter、action 为普通 method；`defineStore<T>(id, factory)` 返回 useStore
 - 0.1.0 setup 式 API 移除：`storeToRefs`（reactive 模板直接响应，无需解构）、顶层 `patch(mutator)`（`$patch(partial)` 等价且类型安全）、`loadPersisted` / `savePersisted` / `getStorageKey`（被内置持久化插件内化）
 
 ### 新增
