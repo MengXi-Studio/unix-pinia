@@ -39,4 +39,4 @@ import { getActivePinia } from '@/uni_modules/ux-pinia'
 console.log('unix-pinia ready')
 ```
 
-For a full check, use the demo app [packages/playground](https://github.com/MengXi-Studio/unix-pinia/tree/master/packages/playground): open it in HBuilderX and release, or install the [Android demo APK (cloud build)](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1793386392738-__UNI__0AA2919_1793386383661.apk) directly and open each feature page to see the `[verify]` results.
+For a full check, use the demo app [packages/playground](https://github.com/MengXi-Studio/unix-pinia/tree/master/packages/playground): open it in HBuilderX and release, or install the [Android demo APK (cloud build)](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1793456655694-__UNI__0AA2919_1793456648910.apk) directly and open each feature page to see the `[verify]` results.

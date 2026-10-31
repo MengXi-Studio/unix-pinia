@@ -17,7 +17,7 @@
 			<text class="section">用例</text>
 			<view class="row">
 				<button class="row-btn" size="mini" @click="run">重新运行</button>
-				<button class="row-btn" size="mini" @click="userStore.addScoreFromCount">addScoreFromCount</button>
+				<button class="row-btn" size="mini" @click="userStore.addScoreFromCount()">addScoreFromCount</button>
 			</view>
 
 			<view class="logs">

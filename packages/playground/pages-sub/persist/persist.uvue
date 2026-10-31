@@ -18,7 +18,7 @@
 			<text class="section">用例</text>
 			<view class="row">
 				<button class="row-btn" size="mini" @click="run">运行（修改→$save→读快照验证落盘）</button>
-				<button class="row-btn" size="mini" @click="pStore.add">pvCount+1</button>
+				<button class="row-btn" size="mini" @click="pStore.add()">pvCount+1</button>
 				<button class="row-btn" size="mini" @click="addAndSave">pvCount+1 并 $save</button>
 				<button class="row-btn" size="mini" @click="onClear">重置为默认</button>
 			</view>

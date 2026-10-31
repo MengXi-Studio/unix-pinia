@@ -15,8 +15,8 @@
 			</view>
 
 			<view class="row">
-				<button class="row-btn" size="mini" @click="counterStore.increment">increment</button>
-				<button class="row-btn" size="mini" @click="counterStore.reset">reset</button>
+				<button class="row-btn" size="mini" @click="counterStore.increment()">increment</button>
+				<button class="row-btn" size="mini" @click="counterStore.reset()">reset</button>
 			</view>
 
 			<view class="row">

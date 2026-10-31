@@ -116,9 +116,16 @@ const token: Ref<string> = persistedRef('user', 'token', '')
 
 - 📖 完整文档（指南 + API 参考 + 更新日志，中英双语）：[https://mengxi-studio.github.io/unix-pinia/](https://mengxi-studio.github.io/unix-pinia/)
 - 💻 示例工程：仓库自带 [packages/playground](https://github.com/MengXi-Studio/unix-pinia/tree/master/packages/playground)，首页自动运行全部验证用例
-- 📱 Android 真机体验：[下载演示 App（APK）](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1793386392738-__UNI__0AA2919_1793386383661.apk)
+- 📱 Android 真机体验：[下载演示 App（APK）](https://mp-b8b8347a-48e9-434d-8302-3e9d99c2cb01.cdn.bspapp.com/cloudstorage/app-build-pkg/1793456655694-__UNI__0AA2919_1793456648910.apk)
 
 ## 更新记录
+
+### 0.3.0（2026-10-31）
+
+- **架构升级：class + reactive**（store 定义改为 `class extends PiniaStoreBase`，state 用 `reactive<T>` 包裹、action 为普通 method、派生值用 class getter）
+- **完整功能面**：`$patch` / `$reset` / `$subscribe` / `$onAction` / `$dispose` / `$id` / `$state` / `$save` 全部可用
+- **内置持久化插件**：`createPersistPlugin`（store 创建自动恢复，`$patch`/`$reset`/`$save` 自动落盘快照）+ `clearPersistedState`
+- 云打包验证通过（Android Kotlin 编译链，蒸汽模式）
 
 ### 0.2.0（2026-10-31）
 
