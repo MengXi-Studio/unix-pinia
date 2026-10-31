@@ -67,36 +67,35 @@ store.count.value++                                // 脚本访问 state：.valu
 
 > 纯状态管理无需任何挂载代码；需要插件调度时在 main.uts 顶层 `setActivePinia(createPinia().use(myPlugin))`（P8 实测：原生端 `app.use` 不触发 install）。
 
-### 4. 持久化字段（声明即持久化）
+### 4. 持久化字段
 
-先在主工程定义一次 helper（`stores/persist-helper.uts`，vue API 需在主工程编译路径使用）：
+**直接用法（每字段 2 行，零额外文件）**——恢复在 `ref()` 初始化里，落盘就是普通 `watch`：
 
 ```uts
 import { ref, watch } from 'vue'
-import type { Ref } from 'vue'
 import { loadPersisted, savePersisted } from '@/uni_modules/ux-pinia'
 
-/** 持久化字段：恢复初值 + 字段级 watch 自动落盘 */
-export function persistedRef<T>(storeId: string, key: string, defaultValue: T): Ref<T> {
-	const saved: any | null = loadPersisted(storeId, key)
-	const r: Ref<T> = ref(saved != null ? (saved as T) : defaultValue) as Ref<T>
-	watch(r, (nv: any, ov: any): void => {
-		savePersisted(storeId, key, nv)
-	})
-	return r
-}
+export const useUserStore = defineStore<UserStore>('user', (): UserStore => {
+	// 恢复：ref() 初始化时读存储（未命中 / 损坏自动回退默认值 ''）
+	const token: Ref<string> = ref((loadPersisted('user', 'token') ?? '') as string)
+	// 落盘：字段级 watch，值变化即写存储
+	watch(token, (nv: string): void => { savePersisted('user', 'token', nv) })
+	return { token } as UserStore
+})
 ```
 
-store 内每字段一行：
+**可选糖**：多 store 复用时可在项目内定义 `persistedRef` helper 把两行合一（完整示例见开源仓库 playground 的 `stores/persist-helper.uts`）：
 
 ```uts
-const token: Ref<string> = persistedRef('user', 'token', '')  // ← 每字段一行
+const token: Ref<string> = persistedRef('user', 'token', '')
 ```
 
-- **恢复**：创建 ref 时即从存储读初始值（未命中或损坏数据自动回退默认值）
-- **落盘**：内建字段级 watch，值变化即写存储（应用级生命周期，无需挂接任何插件）
+- **恢复**：`ref()` 初始化读存储，未命中 / 损坏自动回退默认值
+- **落盘**：字段级 watch，值变化即写存储（应用级生命周期，无需挂接任何插件）
 - **换后端**：`setStorageAdapter({ get, set })` 在首次读写字段前调用
 - **调试**：`getStorageKey('user', 'token')` 组出完整键 `ux-pinia-persist:user.token` 直查存储
+
+> 持久化胶水（ref/watch）为什么在使用方代码里：UTS 插件的官方职责是封装原生 / 三方 API，vue 响应式属于主工程 / 页面编译路径（HBuilderX 5.34 实证）。这是 uni-app x 插件生态的统一约束——官方推荐的 Pinia 插件 x-pinia-s 能内置持久化零样板，是因为它采用 class + reactive 架构（非 setup 式）。
 
 ## API 清单
 

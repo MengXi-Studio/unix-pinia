@@ -33,7 +33,7 @@ uni-app x 的 **vdom 模式 App 原生端**无法使用标准 Pinia（蒸汽模�
 - **实例 API 顶层函数映射** - `patch` / `dispose` / `getStoreId` 对应 `$patch` / `$dispose` / `$id`（UTS 无 Proxy，无法在 store 对象上挂方法）
 - **跨 store 依赖** - setup 内直接调用对方 `useStore`，注册表保证单例
 - **插件体系** - `pinia.use(plugin)` 链式注册，`PiniaPluginContext`（`pinia` / `store` / `storeId`）对齐标准 Pinia 三字段
-- **持久化存储原语** - `loadPersisted` / `savePersisted` JSON 信封序列化（`{ v }`，损坏自动回退默认值），`setStorageAdapter` 后端可替换；主工程 `persistedRef` helper 声明即持久化（恢复 + 字段级 watch 自动落盘）
+- **持久化存储原语** - `loadPersisted` / `savePersisted` JSON 信封序列化（`{ v }`，损坏自动回退默认值），`setStorageAdapter` 后端可替换；恢复与落盘以 vue 原生形态接入（每字段 2 行）
 - **幂等与可预测** - 同 id 重复 `defineStore` 警告并返回既有实例；`dispose` 后 `useStore` 重建全新实例
 - **强类型 UTS** - 全量显式类型标注；Kotlin 泛型擦除边界（`as any`）已在库内收敛，业务侧零感知
 - **双端实测** - Web（JS 编译链）与 Android（Kotlin 编译链、真机）全用例通过，双端行为一致
@@ -118,34 +118,27 @@ import { createPinia, setActivePinia } from '@/uni_modules/ux-pinia'
 setActivePinia(createPinia().use(myPlugin))
 ```
 
-### 5. 持久化字段（声明即持久化）
+### 5. 持久化字段
 
-先在主工程定义一次 helper（`stores/persist-helper.uts`，vue API 需在主工程编译路径使用——5.34 编译器实证：UTS 插件内 vue 符号的 Kotlin import 生成失效）：
+**直接用法（推荐，每字段 2 行，零额外文件）**——恢复就在 `ref()` 初始化里，落盘就是普通 `watch`，与写任何 vue 状态同构：
 
 ```uts
-// stores/persist-helper.uts
 import { ref, watch } from 'vue'
-import type { Ref } from 'vue'
 import { loadPersisted, savePersisted } from '@/uni_modules/ux-pinia'
 
-/** 持久化字段：恢复初值 + 字段级 watch 自动落盘 */
-export function persistedRef<T>(storeId: string, key: string, defaultValue: T): Ref<T> {
-	const saved: any | null = loadPersisted(storeId, key)
-	const r: Ref<T> = ref(saved != null ? (saved as T) : defaultValue) as Ref<T>
-	watch(r, (nv: any, ov: any): void => {
-		savePersisted(storeId, key, nv)
-	})
-	return r
-}
+export const useUserStore = defineStore<UserStore>('user', (): UserStore => {
+	// 恢复：ref() 初始化时读存储（未命中 / 损坏自动回退默认值 ''）
+	const token: Ref<string> = ref((loadPersisted('user', 'token') ?? '') as string)
+	// 落盘：字段级 watch，值变化即写存储
+	watch(token, (nv: string): void => { savePersisted('user', 'token', nv) })
+	// 换后端（可选）：setStorageAdapter({ get, set })，默认 uni storage
+	return { token } as UserStore
+})
 ```
 
-store 内每字段一行：
+**可选糖（每字段 1 行）**：项目内多次使用时，可自建 `persistedRef` helper 把两行合一（示例见 [stores/persist-helper.uts](https://github.com/MengXi-Studio/unix-pinia/blob/master/packages/playground/stores/persist-helper.uts)）。
 
-```uts
-const token: Ref<string> = persistedRef('user', 'token', '')  // ← 每字段一行
-
-// action 不用管落盘；换后端用 setStorageAdapter({ get, set })（默认 uni storage）
-```
+> **为什么持久化胶水在使用方而不是插件内**：UTS 插件的官方职责是封装原生 / 三方 API，vue 响应式 API 属于主工程 / 页面编译路径（HBuilderX 5.34 实证：UTS 插件内 vue 符号的 Kotlin import 生成失效）。官方推荐的 Android vdom 模式 Pinia 插件 [x-pinia-s](https://ext.dcloud.net.cn/plugin?name=x-pinia-s) 之所以能内置持久化零样板，是因为它采用 class + reactive 架构（放弃了 setup 式 + Ref 形态）——这是架构定位的取舍，不是本库的实现缺陷。
 
 ### 运行效果
 

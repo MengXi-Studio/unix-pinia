@@ -33,7 +33,7 @@ Design principle: replicate the Pinia API surface 1:1 and **prune what the platf
 - **Instance APIs as top-level functions** - `patch` / `dispose` / `getStoreId` mirror `$patch` / `$dispose` / `$id` (UTS has no Proxy, so methods cannot be attached to store objects)
 - **Cross-store dependencies** - call the other `useStore` inside setup; the registry guarantees singletons
 - **Plugin system** - chainable `pinia.use(plugin)` with `PiniaPluginContext` (`pinia` / `store` / `storeId`) matching standard Pinia
-- **Persistence primitives** - `loadPersisted` / `savePersisted` JSON-envelope serialization (`{ v }` with automatic fallback on corruption), `setStorageAdapter` for swappable backends; the host-project `persistedRef` helper makes fields persist on declaration (restore + field-level watch auto-save)
+- **Persistence primitives** - `loadPersisted` / `savePersisted` JSON-envelope serialization (`{ v }` with automatic fallback on corruption), `setStorageAdapter` for swappable backends; restore & save integrate in native vue form (2 lines per field)
 - **Idempotent & predictable** - duplicate `defineStore` with the same id warns and returns the existing instance; after `dispose`, `useStore` rebuilds a fresh store
 - **Strictly typed UTS** - fully explicit annotations; the Kotlin generics-erasure boundary (`as any`) is contained inside the library, invisible to business code
 - **Verified on both platforms** - full test suite passes on Web (JS toolchain) and Android (Kotlin toolchain, real device) with identical behavior
@@ -119,34 +119,27 @@ import { createPinia, setActivePinia } from '@/uni_modules/ux-pinia'
 setActivePinia(createPinia().use(myPlugin))
 ```
 
-### 5. Persisted fields (declare it and it persists)
+### 5. Persisted fields
 
-Define the helper once in the host project (`stores/persist-helper.uts`; vue APIs must live on the host-project compile path — proven by HBuilderX 5.34: Kotlin import generation for vue symbols inside UTS plugins fails):
+**Direct usage (recommended, 2 lines per field, zero extra files)** — restore lives inside `ref()` initialization, saving is a plain `watch`, isomorphic with writing any vue state:
 
 ```uts
-// stores/persist-helper.uts
 import { ref, watch } from 'vue'
-import type { Ref } from 'vue'
 import { loadPersisted, savePersisted } from '@/uni_modules/ux-pinia'
 
-/** Persisted field: restore initial value + field-level watch auto-save */
-export function persistedRef<T>(storeId: string, key: string, defaultValue: T): Ref<T> {
-	const saved: any | null = loadPersisted(storeId, key)
-	const r: Ref<T> = ref(saved != null ? (saved as T) : defaultValue) as Ref<T>
-	watch(r, (nv: any, ov: any): void => {
-		savePersisted(storeId, key, nv)
-	})
-	return r
-}
+export const useUserStore = defineStore<UserStore>('user', (): UserStore => {
+	// Restore: read storage inside ref() initialization (miss / corruption falls back to '')
+	const token: Ref<string> = ref((loadPersisted('user', 'token') ?? '') as string)
+	// Save: field-level watch, every change writes storage
+	watch(token, (nv: string): void => { savePersisted('user', 'token', nv) })
+	// Swap backend (optional): setStorageAdapter({ get, set }), uni storage by default
+	return { token } as UserStore
+})
 ```
 
-One line per field in your store:
+**Optional sugar (1 line per field)**: if used across many stores, you can define a `persistedRef` helper in your project (see the playground's [stores/persist-helper.uts](https://github.com/MengXi-Studio/unix-pinia/blob/master/packages/playground/stores/persist-helper.uts)).
 
-```uts
-const token: Ref<string> = persistedRef('user', 'token', '')  // ← one line per field
-
-// actions never worry about saving; swap backends with setStorageAdapter({ get, set }) (uni storage by default)
-```
+> **Why the persistence glue lives in user code, not inside the plugin**: the official role of a UTS plugin is wrapping native / third-party APIs; vue reactivity belongs to the host-project / page compile path (proven on HBuilderX 5.34: Kotlin import generation for vue symbols inside UTS plugins fails). The officially recommended Android vdom-mode Pinia plugin [x-pinia-s](https://ext.dcloud.net.cn/plugin?name=x-pinia-s) ships built-in zero-boilerplate persistence because it uses a class + reactive architecture (giving up the setup-style + Ref form) — an architectural trade-off, not a defect of this library.
 
 ### Verification
 
