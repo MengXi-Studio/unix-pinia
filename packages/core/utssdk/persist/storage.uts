@@ -43,9 +43,22 @@ const defaultRemove = (key: string): void => {
 /** 当前存储适配器（默认 uni storage，可经 setStorageAdapterImpl 替换） */
 let adapter: StorageAdapter = { get: defaultGet, set: defaultSet, remove: defaultRemove }
 
-/** 替换存储后端（实现「使用者自选持久化库」：unix-storage / 原生 preferences 等） */
+/**
+ * 替换存储后端（实现「使用者自选持久化库」：unix-storage / 原生 preferences 等）。
+ *
+ * 字段可省略（null）：省略的回调回退默认 uni storage 行为。
+ * 实现侧合并而非直接替换——StorageAdapter 字段为可空函数类型（桥接安全前提，
+ * 见 interface.uts 注释），本地 val 中转判空后补齐默认实现（Kotlin 不对字段 smart cast）。
+ */
 export function setStorageAdapterImpl(next: StorageAdapter): void {
-	adapter = next
+	const nextGet = next.get
+	const nextSet = next.set
+	const nextRemove = next.remove
+	adapter = {
+		get: nextGet != null ? nextGet : defaultGet,
+		set: nextSet != null ? nextSet : defaultSet,
+		remove: nextRemove != null ? nextRemove : defaultRemove
+	} as StorageAdapter
 }
 
 /** 读原始字符串；未命中返回 null */

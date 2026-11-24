@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.2.1] - 2026-11-24
+
+### Fixed
+
+- **Base-app runtime crash**: under the base-app dynamic-dispatch runtime (UTSBridge method table), a plugin function returned by `createPersistPlugin` and passed back across the bridge as a `use` argument is materialized as UTSJSONObject, triggering `UTSJSONObject cannot be cast to UTSCallback` — the documented 0.2.0 persistence-registration form fails to start on the base app
+
+### Added
+
+- **Bridge-safe plugin registration**: `Pinia.usePersistPlugin(options)` (chainable instance method) — keeps plugin construction and registration inside the plugin module to avoid that boundary; `pinia.usePersistPlugin(options)` is the recommended form for registering the persistence plugin, `createPersistPlugin` is kept for pure-Kotlin direct-call scenarios
+- **`StorageAdapter` callback fields are optional**: null fields fall back to default uni storage behavior; the nullable declaration gives the bridge conversion null guards (same mechanism as `PersistOptions.serializer`)
+
 ## [0.2.0] - 2026-10-31
 
 ### Changed (breaking)

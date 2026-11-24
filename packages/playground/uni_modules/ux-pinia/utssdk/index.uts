@@ -123,6 +123,7 @@ export function clearPersistedState(storeId: string, keyPrefix: string): void {
 /**
  * 替换存储后端（可选）。默认基于 uni storage；
  * 换 unix-storage / 原生 preferences 时实现 StorageAdapter，并在创建任何 store 前调用。
+ * 三个回调字段均可省略（null）——省略的回调回退默认 uni storage 行为。
  */
 export function setStorageAdapter(next: StorageAdapter): void {
 	setStorageAdapterImpl(next)

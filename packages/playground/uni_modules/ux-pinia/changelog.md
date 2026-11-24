@@ -1,3 +1,14 @@
+## 0.2.1 (2026-11-24)
+
+### 修复
+
+- **基座运行时崩溃**：基座 / 动态分发运行时（UTSBridge 方法表）下，`createPersistPlugin` 返回的插件函数跨桥回传后再作为 `use` 入参会被物化为 UTSJSONObject，触发 `UTSJSONObject cannot be cast to UTSCallback`——0.2.0 文档形态的持久化登记在基座上无法启动
+
+### 新增
+
+- **桥接安全的插件登记**：`Pinia.usePersistPlugin(options)`（链式实例方法）——把插件构造与注册留在插件模块内规避上述边界；持久化插件登记统一推荐 `pinia.usePersistPlugin(options)`，`createPersistPlugin` 保留用于纯 Kotlin 直调场景
+- **`StorageAdapter` 三个回调字段可省略**：null 字段回退默认 uni storage 行为；可空声明使桥接转换获得判空保护（与 `PersistOptions.serializer` 同款机制）
+
 ## 0.2.0 (2026-11-01)
 
 ### 变更（破坏性）

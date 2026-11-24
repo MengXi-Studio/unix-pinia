@@ -39,12 +39,17 @@ export type PiniaPlugin = (ctx: PiniaPluginContext) => void
  * 存储适配器（持久化后端）：让使用者自选持久化后端
  * （unix-storage / uni storage / 原生 preferences）。
  * 默认实现基于 uni.getStorageSync / uni.setStorageSync / uni.removeStorageSync（零依赖）。
+ *
+ * 三个字段均可省略（null）：null 字段回退默认 uni storage 行为。
+ * 可空声明是桥接安全的前提——基座动态分发下，非空函数字段的生成转换会无条件
+ * `as UTSCallback`（null 字段直接 ClassCastException），可空字段才有判空保护
+ * （与 PersistOptions.serializer 同款机制）。
  */
 export type StorageAdapter = {
-	/** 读取原始字符串；未命中返回 null */
-	get: (key: string) => string | null
-	/** 写入原始字符串 */
-	set: (key: string, value: string) => void
-	/** 删除指定键 */
-	remove: (key: string) => void
+	/** 读取原始字符串；未命中返回 null；null = 回退默认 uni storage 读取 */
+	get: ((key: string) => string | null) | null
+	/** 写入原始字符串；null = 回退默认 uni storage 写入 */
+	set: ((key: string, value: string) => void) | null
+	/** 删除指定键；null = 回退默认 uni storage 删除 */
+	remove: ((key: string) => void) | null
 }
