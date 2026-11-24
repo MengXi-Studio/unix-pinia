@@ -113,14 +113,14 @@ export class UserStore extends PiniaStoreBase {
 `main.uts` 顶层登记内置持久化插件（一次配置，全部 store 生效）：
 
 ```uts
-import { createPinia, setActivePinia, createPersistPlugin } from '@/uni_modules/ux-pinia'
+import { createPinia, setActivePinia } from '@/uni_modules/ux-pinia'
 
-setActivePinia(createPinia().use(createPersistPlugin({
+setActivePinia(createPinia().usePersistPlugin({
   keyPrefix: 'ux-pinia:',
   includeStores: null,               // null = 全部 store
   excludeStores: new Array<string>(),
   serializer: null                   // null = JSON 序列化
-})))
+}))
 ```
 
 需要持久化的 store 重写两个钩子（Template Method 契约）：
@@ -141,7 +141,7 @@ override _hydrate(data: UTSJSONObject): void {
 
 - **恢复**：store 创建时插件读存储并调 `_hydrate`（自动，无需任何代码）
 - **落盘**：`$patch` / `$reset` / `$save` 触发 `_serialize` 快照写存储（自动）；direct 修改后需调 `counter.$save()`
-- **换后端**：`setStorageAdapter({ get, set, remove })` 在创建任何 store 前调用（默认 uni storage，可换 unix-storage / 原生 preferences）
+- **换后端**：`setStorageAdapter({ get, set, remove })` 在创建任何 store 前调用（默认 uni storage，可换 unix-storage / 原生 preferences）；三个回调字段可省略，null 字段回退默认 uni storage 行为
 - **调试**：`clearPersistedState('user', 'ux-pinia:')` 清空指定 store 的持久化数据
 
 ::: tip

@@ -19,7 +19,7 @@ unix-pinia aligns with standard Pinia's feature surface and usage habits. Becaus
 | `$patch(fn)` / `$patch(partial)` | `$patch(partial: UTSJSONObject)` — object form only | no `Partial<T>` inference; loading goes through the `_hydrate` hook and stays type-safe |
 | `$subscribe(cb)` fires on any change | `$subscribe(cb)` fires only on `$patch` / `$reset` / `$save` | UTS has no global field-subscription hook; call `$save()` after direct mutations |
 | `$onAction` tracks all actions automatically | only actions wrapped with `callAction` are tracked | UTS cannot wrap methods automatically |
-| `$state = { ... }` whole replacement | `$state` is a read-only reference (same as `store.state`) | a reactive object cannot be cast wholesale; mutate per field + `$patch` |
+| `$state = { ... }` whole replacement | `$state` is a reference (same as `store.state`); reassigning only swaps the reference and triggers neither subscriptions nor persistence | a reactive object cannot be cast wholesale; mutate per field + `$patch` |
 | `$reset()` built in (Options stores) | `$reset()` is defined by the `_doReset` hook | standard Pinia does not build it in for setup stores either |
 | plugins may return an object merged into the store | plugins return `void`, hook logic only | UTS forbids injecting properties into existing objects dynamically |
 

@@ -60,6 +60,8 @@ Creates the built-in persistence plugin (register at the top level of `main.uts`
 - **Persist to storage**: `$patch` / `$reset` / `$save` trigger the `_serialize()` snapshot write (automatic)
 - **Prerequisite**: stores override `_serialize()` / `_hydrate()` on demand (without overriding, persistence for that store is a no-op)
 
+Register via **`pinia.usePersistPlugin(options)`** (chainable instance method): under the base-app dynamic-dispatch runtime (UTSBridge method table), the plugin function returned by this API, when passed back across the bridge as a `use` argument, is materialized as UTSJSONObject (`UTSJSONObject cannot be cast to UTSCallback`); `createPersistPlugin` is kept for pure-Kotlin direct-call scenarios.
+
 See [PersistOptions](./types#persistoptions) for the options.
 
 ## clearPersistedState
@@ -76,7 +78,7 @@ Clears the persisted data of the given store. Keep `keyPrefix` consistent with t
 export function setStorageAdapter(next: StorageAdapter): void
 ```
 
-Swaps the storage backend (uni storage by default; swap to unix-storage / native preferences). Call before creating any store.
+Swaps the storage backend (uni storage by default; swap to unix-storage / native preferences). Call before creating any store. The three callback fields are optional — null fields fall back to default uni storage behavior.
 
 ::: tip Migration note
 The early setup-style APIs (`storeToRefs` / top-level `patch` / `loadPersisted` / `savePersisted` etc.) have been removed. For the form mapping see [Differences from standard Pinia](../guide/pinia-diff); for the change history see the changelog.

@@ -78,17 +78,17 @@ const counter = useCounterStore()   // 多次调用返回同一实例（跨页�
 纯状态管理**无需任何挂载代码**。需要插件（含内置持久化）时在 `main.uts` 顶层显式登记：
 
 ```uts
-import { createPinia, setActivePinia, createPersistPlugin } from '@/uni_modules/ux-pinia'
+import { createPinia, setActivePinia } from '@/uni_modules/ux-pinia'
 
-setActivePinia(createPinia().use(createPersistPlugin({
+setActivePinia(createPinia().usePersistPlugin({
   keyPrefix: 'ux-pinia:',
   includeStores: null,               // null = 全部 store
   excludeStores: new Array<string>(),
   serializer: null                   // null = JSON 序列化
-})))
+}))
 ```
 
-持久化的完整用法（`_serialize` / `_hydrate` 双钩子）见[基础用法](./basic-usage#持久化)。
+登记统一走 `usePersistPlugin`（桥接安全入口：基座 / 动态分发运行时下，函数值跨桥回传再作为入参会被物化为 UTSJSONObject）。持久化的完整用法（`_serialize` / `_hydrate` 双钩子）见[基础用法](./basic-usage#持久化)。
 
 ## 下一步
 

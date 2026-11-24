@@ -19,7 +19,7 @@ unix-pinia 对齐标准 Pinia 的功能面与使用习惯；因 UTS 编译到 Ko
 | `$patch(fn)` / `$patch(partial)` | `$patch(partial: UTSJSONObject)` 仅对象形态 | 无 `Partial<T>` 推导；装载经 `_hydrate` 钩子，类型安全 |
 | `$subscribe(cb)` 任意变更触发 | `$subscribe(cb)` 仅 `$patch` / `$reset` / `$save` 触发 | UTS 无全局字段订阅钩子；direct 修改后调 `$save()` |
 | `$onAction` 自动追踪全部 action | 仅追踪经 `callAction` 包装的 action | UTS 无法自动包装 method |
-| `$state = { ... }` 整体替换 | `$state` 只读引用（同 `store.state`） | reactive 对象无法整体 cast，逐字段修改 + `$patch` |
+| `$state = { ... }` 整体替换 | `$state` 引用语义（同 `store.state`）；重新赋值仅替换引用、不触发订阅 / 持久化 | reactive 对象无法整体 cast，逐字段修改 + `$patch` |
 | `$reset()` 内置（Options store） | `$reset()` 由 `_doReset` 钩子定义 | 标准 Pinia 对 setup store 同样不内置 |
 | 插件可返回对象合并进 store | 插件返回 `void`，仅 hook 逻辑 | UTS 禁止向既有对象动态注入属性 |
 

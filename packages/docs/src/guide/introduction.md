@@ -17,7 +17,7 @@ uni-app x 存在两套编译管线，标准 Pinia 的支持情况如下：
 
 - **class 式 defineStore**：`class XxxStore extends PiniaStoreBase`——state 用 `reactive<T>` 强类型包裹、派生值用 class getter、action 为普通 method，结构对齐官方 `state / getters / actions` 心智
 - **完整实例 API**：`$patch` / `$reset` / `$subscribe` / `$onAction` / `$dispose` / `$id` / `$state` / `$save` 全部内置
-- **内置持久化插件**：`createPersistPlugin` 一次登记全部 store 生效——store 创建自动恢复、`$patch` / `$reset` / `$save` 自动落盘；存储后端可替换
+- **内置持久化插件**：`pinia.usePersistPlugin(options)` 一次登记全部 store 生效——store 创建自动恢复、`$patch` / `$reset` / `$save` 自动落盘；存储后端可替换
 - **免挂载单例**：模块级注册表保证应用级单例，跨页面共享状态，无需 `app.use`
 - **原生性能**：UTS 源码分发（Web → JS，Android → Kotlin），由 uni-app x 编译链现场编译
 - **严格类型**：`reactive<T>` 强类型包裹，编辑器全程提示；Kotlin 泛型擦除与可空性边界在库内收敛

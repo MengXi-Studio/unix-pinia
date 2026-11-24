@@ -78,17 +78,17 @@ const counter = useCounterStore()   // repeated calls return the same instance (
 Pure state management requires **zero mounting code**. When you need plugins (including built-in persistence), register explicitly at the top level of `main.uts`:
 
 ```uts
-import { createPinia, setActivePinia, createPersistPlugin } from '@/uni_modules/ux-pinia'
+import { createPinia, setActivePinia } from '@/uni_modules/ux-pinia'
 
-setActivePinia(createPinia().use(createPersistPlugin({
+setActivePinia(createPinia().usePersistPlugin({
   keyPrefix: 'ux-pinia:',
   includeStores: null,               // null = all stores
   excludeStores: new Array<string>(),
   serializer: null                   // null = JSON serialization
-})))
+}))
 ```
 
-For the full persistence usage (the `_serialize` / `_hydrate` hook pair), see [Basic usage](./basic-usage#persistence).
+Registration always goes through `usePersistPlugin` (bridge-safe entry: under the base-app dynamic-dispatch runtime, a function value returned across the bridge and passed back as an argument degrades to UTSJSONObject). For the full persistence usage (the `_serialize` / `_hydrate` hook pair), see [Basic usage](./basic-usage#persistence).
 
 ## Next steps
 

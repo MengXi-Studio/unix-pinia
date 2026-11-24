@@ -7,6 +7,7 @@ The Pinia instance type (returned by `createPinia`).
 | Member | Signature | Notes |
 | --- | --- | --- |
 | `use` | `(plugin: PiniaPlugin) => Pinia` | registers a plugin, chainable |
+| `usePersistPlugin` | `(options: PersistOptions) => Pinia` | bridge-safe persistence-plugin registration (chainable) |
 | `install` | `(app: any) => void` | entry for `app.use(pinia)` (reliable on Web only; use `setActivePinia` on native) |
 
 ## PiniaStoreBase
@@ -85,13 +86,13 @@ Unsubscribe function (the return value of `$subscribe` / `$onAction`).
 
 ```uts
 export type StorageAdapter = {
-  get: (key: string) => string | null,
-  set: (key: string, value: string) => void,
-  remove: (key: string) => void
+  get: ((key: string) => string | null) | null,
+  set: ((key: string, value: string) => void) | null,
+  remove: ((key: string) => void) | null
 }
 ```
 
-Storage adapter (persistence backend): the default implementation is based on uni storage (zero dependencies); swap to unix-storage / native preferences.
+Storage adapter (persistence backend): the default implementation is based on uni storage (zero dependencies); swap to unix-storage / native preferences. The three callback fields are optional (null) — omitted callbacks fall back to default uni storage behavior; the nullable declaration gives the bridge conversion null guards.
 
 ## PersistOptions
 

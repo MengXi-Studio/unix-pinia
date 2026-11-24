@@ -31,7 +31,7 @@ features:
     details: $patch / $reset / $subscribe / $onAction / $dispose / $id / $state / $save all built in, with three hooks to override on demand
   - icon: 💾
     title: Built-in persistence
-    details: register createPersistPlugin once and every store is covered — automatic restore on store creation, automatic persist to storage on $patch / $reset / $save, swappable storage backend
+    details: register pinia.usePersistPlugin(options) once and every store is covered — automatic restore on store creation, automatic persist to storage on $patch / $reset / $save, swappable storage backend
   - icon: 🧩
     title: Mount-free singletons
     details: a module-level registry guarantees app-level singletons shared across pages — works with no app.use at all

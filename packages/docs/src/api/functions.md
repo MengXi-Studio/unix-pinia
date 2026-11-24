@@ -60,6 +60,8 @@ export function createPersistPlugin(options: PersistOptions): PiniaPlugin
 - **落盘**：`$patch` / `$reset` / `$save` 触发 `_serialize()` 快照写存储（自动）
 - **前提**：store 按需重写 `_serialize()` / `_hydrate()`（不重写则该 store 持久化为空操作）
 
+登记推荐经 **`pinia.usePersistPlugin(options)`**（链式实例方法）：基座 / 动态分发运行时（UTSBridge 方法表）下，本函数返回的插件函数跨桥回传后再作为 `use` 入参会被物化为 UTSJSONObject（`UTSJSONObject cannot be cast to UTSCallback`）；`createPersistPlugin` 保留用于纯 Kotlin 直调场景。
+
 配置项见 [PersistOptions](./types#persistoptions)。
 
 ## clearPersistedState
@@ -76,7 +78,7 @@ export function clearPersistedState(storeId: string, keyPrefix: string): void
 export function setStorageAdapter(next: StorageAdapter): void
 ```
 
-替换存储后端（默认基于 uni storage；可换 unix-storage / 原生 preferences）。需在创建任何 store 前调用。
+替换存储后端（默认基于 uni storage；可换 unix-storage / 原生 preferences）。需在创建任何 store 前调用。三个回调字段可省略——null 字段回退默认 uni storage 行为。
 
 ::: tip 迁移提示
 早期 setup 式 API（`storeToRefs` / 顶层 `patch` / `loadPersisted` / `savePersisted` 等）已移除，形态对照见[与标准 Pinia 的差异](../guide/pinia-diff)，变更记录见更新日志。

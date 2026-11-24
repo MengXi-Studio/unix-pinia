@@ -7,6 +7,7 @@ Pinia 实例类型（`createPinia` 返回）。
 | 成员 | 签名 | 说明 |
 | --- | --- | --- |
 | `use` | `(plugin: PiniaPlugin) => Pinia` | 注册插件，链式 |
+| `usePersistPlugin` | `(options: PersistOptions) => Pinia` | 桥接安全的持久化插件登记（链式） |
 | `install` | `(app: any) => void` | `app.use(pinia)` 入口（仅 Web 端可靠，原生端请用 `setActivePinia`） |
 
 ## PiniaStoreBase
@@ -85,13 +86,13 @@ export type Unsubscribe = () => void
 
 ```uts
 export type StorageAdapter = {
-  get: (key: string) => string | null,
-  set: (key: string, value: string) => void,
-  remove: (key: string) => void
+  get: ((key: string) => string | null) | null,
+  set: ((key: string, value: string) => void) | null,
+  remove: ((key: string) => void) | null
 }
 ```
 
-存储适配器（持久化后端）：默认实现基于 uni storage（零依赖），可换 unix-storage / 原生 preferences。
+存储适配器（持久化后端）：默认实现基于 uni storage（零依赖），可换 unix-storage / 原生 preferences。三个回调字段均可省略（null）——省略的回调回退默认 uni storage 行为；可空声明使桥接转换获得判空保护。
 
 ## PersistOptions
 

@@ -16,6 +16,14 @@ setActivePinia(
 		.use(pluginB)
 )
 
+// 场景三：内置持久化插件——桥接安全登记
+// setActivePinia(createPinia().usePersistPlugin({
+// 	keyPrefix: 'ux-pinia:',
+// 	includeStores: null,
+// 	excludeStores: new Array<string>(),
+// 	serializer: null
+// }))
+
 // 运行时读取
 const pinia = getActivePinia() // Pinia | null
 ```
@@ -29,6 +37,7 @@ const pinia = getActivePinia() // Pinia | null
 | 成员 | 签名 | 说明 |
 | --- | --- | --- |
 | `use` | `(plugin: PiniaPlugin) => Pinia` | 注册插件，链式调用；store 创建时按注册顺序调度 |
+| `usePersistPlugin` | `(options: PersistOptions) => Pinia` | 桥接安全的持久化插件登记（链式）；基座 / 动态分发运行时下替代 `use(createPersistPlugin(...))` |
 | `install` | `(app: any) => void` | `app.use(pinia)` 入口（仅 Web 端可靠，原生端用 `setActivePinia`） |
 
 ## 插件调度时机

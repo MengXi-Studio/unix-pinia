@@ -31,11 +31,11 @@ Design note: UTS has no Proxy and no reflection, and recent HBuilderX compilers 
 
 - **Class-style defineStore** - `class XxxStore extends PiniaStoreBase`: state wrapped in `reactive<T>`, derived values as getters, actions as plain methods; `defineStore<T>(id, factory)` returns the useStore function
 - **Full instance API** - `$patch(partial)` / `$reset()` / `$subscribe(cb)` / `$onAction(cb)` / `$dispose()` / `$id` / `$state` / `$save()` all available
-- **Built-in persistence plugin** - `createPersistPlugin({ keyPrefix, includeStores, excludeStores, serializer })`: automatic restore on store creation, automatic save on `$patch` / `$reset` / `$save`; `clearPersistedState` clears a single store
+- **Built-in persistence plugin** - `createPersistPlugin({ keyPrefix, includeStores, excludeStores, serializer })`: automatic restore on store creation, automatic save on `$patch` / `$reset` / `$save`; `clearPersistedState` clears a single store; register via `pinia.usePersistPlugin(options)` (compatible with the base-app dynamic-dispatch runtime)
 - **Mount-free singletons** - a module-level registry guarantees app-lifetime stores shared across pages; zero setup code for pure state management
 - **Plugin system** - chainable `pinia.use(plugin)` with `PiniaPluginContext` (`pinia` / `store` / `storeId`) matching standard Pinia
 - **Cross-store dependencies** - call the other `useStore()` inside a method; the registry guarantees singletons
-- **Swappable storage backend** - `setStorageAdapter({ get, set, remove })`: uni storage by default, unix-storage / native preferences on demand
+- **Swappable storage backend** - `setStorageAdapter({ get, set, remove })`: uni storage by default, unix-storage / native preferences on demand; callback fields are optional — null fields fall back to default uni storage behavior
 - **Idempotent & predictable** - duplicate `defineStore` with the same id warns and returns the existing instance; after `$dispose`, `useStore` rebuilds a fresh store
 - **Strictly typed UTS** - fully explicit annotations; the Kotlin generics-erasure and nullability boundaries (`as any` / `any | null`) are contained inside the library
 - **Verified on both platforms** - full test suite passes on Web (JS toolchain); Android cloud build (Kotlin toolchain) passes, on-device cases under re-verification
@@ -166,15 +166,17 @@ Register the persistence plugin once in main.uts (applies to all stores):
 
 ```uts
 // main.uts
-import { createPinia, setActivePinia, createPersistPlugin } from '@/uni_modules/ux-pinia'
+import { createPinia, setActivePinia } from '@/uni_modules/ux-pinia'
 
-setActivePinia(createPinia().use(createPersistPlugin({
+setActivePinia(createPinia().usePersistPlugin({
   keyPrefix: 'ux-pinia:',
   includeStores: null,                              // null = all stores
   excludeStores: new Array<string>(),
-  serializer: null                                  // null = JSON.stringify
-})))
+  serializer: null                                  // null = JSON serialization
+}))
 ```
+
+Register via `pinia.usePersistPlugin(options)` (bridge-safe: under the base-app dynamic-dispatch runtime, a function value returned across the bridge and passed back as an argument degrades to UTSJSONObject; `createPersistPlugin` is kept for pure-Kotlin direct-call scenarios).
 
 Stores that need persistence override two hooks (Template Method contract):
 
@@ -203,7 +205,7 @@ export class UserStore extends PiniaStoreBase {
 
 - **Restore**: the plugin reads storage and calls `_hydrate` on store creation (automatic, zero code)
 - **Save**: `$patch` / `$reset` / `$save` trigger the `_serialize` snapshot write (automatic); after direct state mutations call `counter.$save()`
-- **Swap backend**: `setStorageAdapter({ get, set, remove })` before creating any store
+- **Swap backend**: `setStorageAdapter({ get, set, remove })` before creating any store (callback fields are optional — null fields fall back to default uni storage behavior)
 - **Debug**: `clearPersistedState('user', 'ux-pinia:')` clears one store's persisted data
 
 ### Verification
@@ -222,7 +224,7 @@ The repo ships a demo app at [packages/playground](https://github.com/MengXi-Stu
 ## Exports
 
 - APIs: `defineStore` / `createPinia` / `setActivePinia` / `getActivePinia` / `dispose` / `getStoreId` / `createPersistPlugin` / `clearPersistedState` / `setStorageAdapter`
-- Classes: `PiniaStoreBase` (store base) / `Pinia` (instance)
+- Classes: `PiniaStoreBase` (store base) / `Pinia` (instance, with `use` / `usePersistPlugin` / `install` methods)
 - Types: `PiniaPlugin` / `PiniaPluginContext` / `Unsubscribe` / `StorageAdapter` / `PersistOptions` / `StateChangeCallback` / `ActionInfo`
 
 ## Documentation

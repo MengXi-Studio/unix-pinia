@@ -16,6 +16,14 @@ setActivePinia(
 		.use(pluginB)
 )
 
+// Case 3: built-in persistence plugin — bridge-safe registration
+// setActivePinia(createPinia().usePersistPlugin({
+// 	keyPrefix: 'ux-pinia:',
+// 	includeStores: null,
+// 	excludeStores: new Array<string>(),
+// 	serializer: null
+// }))
+
 // read at runtime
 const pinia = getActivePinia() // Pinia | null
 ```
@@ -29,6 +37,7 @@ On native, `app.use(pinia instance)` does not fire `install`. Mount-free (or top
 | Member | Signature | Notes |
 | --- | --- | --- |
 | `use` | `(plugin: PiniaPlugin) => Pinia` | registers a plugin, chainable; scheduled in registration order when a store is created |
+| `usePersistPlugin` | `(options: PersistOptions) => Pinia` | bridge-safe persistence-plugin registration (chainable); replaces `use(createPersistPlugin(...))` under the base-app dynamic-dispatch runtime |
 | `install` | `(app: any) => void` | entry for `app.use(pinia)` (reliable on Web only; use `setActivePinia` on native) |
 
 ## Plugin scheduling

@@ -113,14 +113,14 @@ Avoid cross-store references inside getters that create circular dependencies â€
 Register the built-in persistence plugin at the top level of `main.uts` (one configuration, effective for all stores):
 
 ```uts
-import { createPinia, setActivePinia, createPersistPlugin } from '@/uni_modules/ux-pinia'
+import { createPinia, setActivePinia } from '@/uni_modules/ux-pinia'
 
-setActivePinia(createPinia().use(createPersistPlugin({
+setActivePinia(createPinia().usePersistPlugin({
   keyPrefix: 'ux-pinia:',
   includeStores: null,               // null = all stores
   excludeStores: new Array<string>(),
   serializer: null                   // null = JSON serialization
-})))
+}))
 ```
 
 Stores that need persistence override two hooks (the Template Method contract):
@@ -141,7 +141,7 @@ override _hydrate(data: UTSJSONObject): void {
 
 - **Restore**: on store creation the plugin reads storage and calls `_hydrate` (automatic, zero code)
 - **Persist to storage**: `$patch` / `$reset` / `$save` trigger the `_serialize` snapshot write (automatic); after direct mutations, call `counter.$save()`
-- **Swap backend**: call `setStorageAdapter({ get, set, remove })` before creating any store (uni storage by default; swap to unix-storage / native preferences)
+- **Swap backend**: call `setStorageAdapter({ get, set, remove })` before creating any store (uni storage by default; swap to unix-storage / native preferences); the three callback fields are optional â€” null fields fall back to default uni storage behavior
 - **Debug**: `clearPersistedState('user', 'ux-pinia:')` clears the persisted data of one store
 
 ::: tip

@@ -31,7 +31,7 @@ features:
     details: $patch / $reset / $subscribe / $onAction / $dispose / $id / $state / $save 全部内置，三个钩子按需重写
   - icon: 💾
     title: 内置持久化
-    details: createPersistPlugin 一次登记全部生效——store 创建自动恢复、$patch / $reset / $save 自动落盘，存储后端可替换
+    details: pinia.usePersistPlugin(options) 一次登记全部生效——store 创建自动恢复、$patch / $reset / $save 自动落盘，存储后端可替换
   - icon: 🧩
     title: 免挂载单例
     details: 模块级注册表保证应用级单例，跨页面共享状态，无需 app.use 即可工作

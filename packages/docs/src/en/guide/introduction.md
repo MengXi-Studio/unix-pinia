@@ -17,7 +17,7 @@ If your project runs on **vdom-mode native apps** (Android/iOS/HarmonyOS), stand
 
 - **Class-style defineStore**: `class XxxStore extends PiniaStoreBase` — state wrapped in strongly-typed `reactive<T>`, derived values as class getters, actions as plain methods; the structure aligns with the official `state / getters / actions` mental model
 - **Full instance API**: `$patch` / `$reset` / `$subscribe` / `$onAction` / `$dispose` / `$id` / `$state` / `$save` all built in
-- **Built-in persistence plugin**: register `createPersistPlugin` once and every store is covered — automatic restore on store creation, automatic persist to storage on `$patch` / `$reset` / `$save`; swappable storage backend
+- **Built-in persistence plugin**: register `pinia.usePersistPlugin(options)` once and every store is covered — automatic restore on store creation, automatic persist to storage on `$patch` / `$reset` / `$save`; swappable storage backend
 - **Mount-free singletons**: a module-level registry guarantees app-level singletons shared across pages, with no `app.use` needed
 - **Native performance**: UTS source distribution (Web → JS, Android → Kotlin), compiled on the fly by the uni-app x toolchain
 - **Strictly typed**: strongly-typed `reactive<T>` wrapping with full editor support; Kotlin generics-erasure and nullability boundaries are contained inside the library

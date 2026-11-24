@@ -11,11 +11,11 @@
 
 - **class 式 defineStore**：`class XxxStore extends PiniaStoreBase`——state 用 `reactive<T>` 强类型包裹、派生值用 class getter、action 为普通 method，结构对齐 Pinia 官方 `state / getters / actions` 心智；`defineStore<T>(id, factory)` 返回 useStore，返回类型显式标注，编辑器全程提示
 - **完整实例 API**：`$patch(partial)` / `$reset()` / `$subscribe(cb)` / `$onAction(cb)` / `$dispose()` / `$id` / `$state` / `$save()` 全部内置（class + reactive 架构）
-- **内置持久化插件**：`createPersistPlugin`（store 创建自动恢复，`$patch` / `$reset` / `$save` 自动落盘快照）+ `clearPersistedState`；只需按需重写 `_serialize` / `_hydrate` 两个钩子
+- **内置持久化插件**：`createPersistPlugin`（store 创建自动恢复，`$patch` / `$reset` / `$save` 自动落盘快照）+ `clearPersistedState`；只需按需重写 `_serialize` / `_hydrate` 两个钩子；登记推荐 `pinia.usePersistPlugin(options)`（基座 / 动态分发运行时兼容）
 - **免挂载单例**：模块级注册表保证应用级单例，跨页面共享状态；纯状态管理零挂载代码
 - **插件体系**：`pinia.use(plugin)` 链式注册，`PiniaPluginContext`（`pinia` / `store` / `storeId`）对齐标准 Pinia 三字段
 - **跨 store 依赖**：method 内直接调用对方 `useStore`，注册表保证单例（不要放在字段初始化器中）
-- **可替换存储后端**：`setStorageAdapter({ get, set, remove })`——默认 uni storage，可换 unix-storage / 原生 preferences
+- **可替换存储后端**：`setStorageAdapter({ get, set, remove })`——默认 uni storage，可换 unix-storage / 原生 preferences；回调字段可省略，null 回退默认 uni storage 行为
 - **强类型 UTS**：全量显式类型标注；Kotlin 泛型擦除与可空性边界已在库内收敛，业务侧零感知
 
 ## 平台兼容性
@@ -24,7 +24,7 @@
 | :---------: | :-----: | :-----------: | :--------------------: | :--------: |
 |      √      |    √    |       √       |           √            |     √      |
 
-> 环境要求：HBuilderX 4.75+，uni-app x 项目。蒸汽模式（vapor）云打包验证通过（Android Kotlin 编译链），真机用例复验中；iOS / 鸿蒙代码与 Android 全端同构，待实测。
+> 环境要求：HBuilderX 4.75+，uni-app x 项目。蒸汽模式（vapor）云打包验证通过（Android Kotlin 编译链），真机用例复验中；基座 / 动态分发运行时兼容（持久化登记用 `usePersistPlugin`）；iOS / 鸿蒙代码与 Android 全端同构，待实测。
 
 ## 使用说明
 
@@ -90,7 +90,7 @@ const counter = useCounterStore()   // 多次调用返回同一实例（跨页�
 
 > - 脚本访问：`counter.state.count`（reactive 字段直接读写，无 `.value`）
 > - **模板事件绑定 class method 必须带括号**：`@click="counter.increment()"`（Kotlin 端 method 不是值）
-> - 纯状态管理无需任何挂载代码；需要插件（含内置持久化）时在 main.uts 顶层 `setActivePinia(createPinia().use(plugin))`（实测：原生端 `app.use` 不触发 install）
+> - 纯状态管理无需任何挂载代码；需要插件时在 main.uts 顶层登记（自定义插件 `setActivePinia(createPinia().use(plugin))`，内置持久化见第 4 节 `usePersistPlugin`）（实测：原生端 `app.use` 不触发 install）
 
 ### 4. 持久化（内置插件，零胶水）
 
@@ -98,15 +98,17 @@ main.uts 顶层登记持久化插件（一次配置，全部 store 生效）：
 
 ```uts
 // main.uts
-import { createPinia, setActivePinia, createPersistPlugin } from '@/uni_modules/ux-pinia'
+import { createPinia, setActivePinia } from '@/uni_modules/ux-pinia'
 
-setActivePinia(createPinia().use(createPersistPlugin({
+setActivePinia(createPinia().usePersistPlugin({
 	keyPrefix: 'ux-pinia:',
 	includeStores: null,               // null = 全部 store
 	excludeStores: new Array<string>(),
 	serializer: null                   // null = JSON 序列化
-})))
+}))
 ```
+
+登记统一走 `pinia.usePersistPlugin(options)`（桥接安全：基座 / 动态分发运行时下函数值跨桥回传再入参会退化；`createPersistPlugin` 保留用于纯 Kotlin 直调场景）。
 
 需要持久化的 store 重写两个钩子（Template Method 契约）：
 
@@ -137,7 +139,7 @@ export const useUserStore = defineStore<UserStore>('user', (): UserStore => new 
 
 - **恢复**：store 创建时插件读存储并调 `_hydrate`（自动，无需任何代码）
 - **落盘**：`$patch` / `$reset` / `$save` 触发 `_serialize` 快照写存储（自动）；direct 修改 state 后需调 `store.$save()`
-- **换后端**：`setStorageAdapter({ get, set, remove })` 在创建任何 store 前调用
+- **换后端**：`setStorageAdapter({ get, set, remove })` 在创建任何 store 前调用（回调字段可省略，null 字段回退默认 uni storage 行为）
 - **调试**：`clearPersistedState('user', 'ux-pinia:')` 清空指定 store 的持久化数据
 
 > 三个钩子（`_doReset` / `_hydrate` / `_serialize`）均可不重写——state 修改 / actions / `$subscribe`（`$patch` / `$reset` 触发）依然有效；不重写 `_serialize` / `_hydrate` 时该 store 持久化为空操作。
@@ -152,7 +154,7 @@ export const useUserStore = defineStore<UserStore>('user', (): UserStore => new 
 | createPinia / setActivePinia / getActivePinia | 实例管理与登记（插件场景） |
 | dispose | ≙ store.$dispose()：注销实例，下次 useStore 重建 |
 | getStoreId | ≙ store.$id：反查 store id |
-| createPersistPlugin | 创建内置持久化插件（main.uts 顶层登记） |
+| createPersistPlugin | 创建内置持久化插件（登记推荐 `pinia.usePersistPlugin(options)`，基座 / 动态分发运行时兼容） |
 | clearPersistedState | 清空指定 store 的持久化数据 |
 | setStorageAdapter | 替换存储后端（默认 uni storage，可换 unix-storage / 原生 preferences） |
 
@@ -168,7 +170,7 @@ export const useUserStore = defineStore<UserStore>('user', (): UserStore => new 
 | $dispose() | 注销实例，下次 useStore 重建 |
 | $id / $state | store id / 当前 state 引用 |
 
-class 与类型：`PiniaStoreBase`（store 基类）/ `Pinia`（实例）/ `PiniaPlugin` / `PiniaPluginContext` / `Unsubscribe` / `StorageAdapter` / `PersistOptions` / `StateChangeCallback` / `ActionInfo`
+class 与类型：`PiniaStoreBase`（store 基类）/ `Pinia`（实例，方法含 `use` / `usePersistPlugin` / `install`）/ `PiniaPlugin` / `PiniaPluginContext` / `Unsubscribe` / `StorageAdapter` / `PersistOptions` / `StateChangeCallback` / `ActionInfo`
 
 ## 文档与演示
 
