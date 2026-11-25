@@ -1,5 +1,11 @@
 # 版本记录
 
+## [0.2.2] - 2026-11-25
+
+### 修复
+
+- **Kotlin 编译失败**：`StorageAdapter` 三字段为可空函数类型（桥接判空保护的前提），`getStorageRaw` / `setStorageRaw` / `removeStorageRaw` 对 `adapter.get` / `adapter.set` / `adapter.remove` 裸调用在 Kotlin 端生成 `Function1<...>?` 的非空调用，触发 `Reference has a nullable type 'Function1<...>?'. Use explicit '?.invoke'` 编译错误——三处调用改为本地 val 中转判空后回退默认实现（沿用 `setStorageAdapterImpl` 同款模式，Kotlin 不对字段 smart cast）
+
 ## [0.2.1] - 2026-11-24
 
 ### 修复

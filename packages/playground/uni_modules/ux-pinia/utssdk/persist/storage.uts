@@ -63,8 +63,11 @@ export function setStorageAdapterImpl(next: StorageAdapter): void {
 
 /** 读原始字符串；未命中返回 null */
 export function getStorageRaw(key: string): string | null {
-	// adapter.get 经对象字面量桥接后 Kotlin 端表达式类型为 Any?：先以 any | null 承载，再显式收窄 string
-	const rawAny: any | null = adapter.get(key)
+	// 字段为可空函数类型：本地 val 中转判空（Kotlin 不对字段 smart cast，裸调用报 Function1? 错误）
+	const getFn = adapter.get
+	const fn = getFn != null ? getFn : defaultGet
+	// fn 经对象字面量桥接后 Kotlin 端表达式类型为 Any?：先以 any | null 承载，再显式收窄 string
+	const rawAny: any | null = fn(key)
 	if (rawAny == null) {
 		return null
 	}
@@ -74,10 +77,16 @@ export function getStorageRaw(key: string): string | null {
 
 /** 写原始字符串 */
 export function setStorageRaw(key: string, value: string): void {
-	adapter.set(key, value)
+	// 字段为可空函数类型：本地 val 中转判空（Kotlin 不对字段 smart cast，裸调用报 Function1? 错误）
+	const setFn = adapter.set
+	const fn = setFn != null ? setFn : defaultSet
+	fn(key, value)
 }
 
 /** 删除指定键 */
 export function removeStorageRaw(key: string): void {
-	adapter.remove(key)
+	// 字段为可空函数类型：本地 val 中转判空（Kotlin 不对字段 smart cast，裸调用报 Function1? 错误）
+	const removeFn = adapter.remove
+	const fn = removeFn != null ? removeFn : defaultRemove
+	fn(key)
 }

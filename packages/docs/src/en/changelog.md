@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.2] - 2026-11-25
+
+### Fixed
+
+- **Kotlin compilation failure**: the three `StorageAdapter` fields are nullable function types (the prerequisite for the bridge null guards); bare invocations of `adapter.get` / `adapter.set` / `adapter.remove` in `getStorageRaw` / `setStorageRaw` / `removeStorageRaw` generated non-null calls on `Function1<...>?` in Kotlin, failing with `Reference has a nullable type 'Function1<...>?'. Use explicit '?.invoke'` — all three call sites now narrow through a local val with a null check falling back to the default implementation (same pattern as `setStorageAdapterImpl`; Kotlin does not smart-cast fields)
+
 ## [0.2.1] - 2026-11-24
 
 ### Fixed
